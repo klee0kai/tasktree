@@ -29,6 +29,9 @@ gradlePlugin {
     }
 }
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
 
 dependencies {
     implementation(gradleApi())
@@ -43,4 +46,12 @@ dependencies {
     // https://mvnrepository.com/artifact/com.android.tools.build/gradle
     implementation("com.android.tools.build:gradle:7.4.2")
 
+
+    // spock tests
+    testImplementation(platform("org.spockframework:spock-bom:2.2-groovy-3.0"))
+    testImplementation("org.spockframework:spock-core")
+
 }
+
+
+

@@ -1,9 +1,14 @@
 package com.github.klee0kai.tasktree
 
-import javax.inject.Inject
+open class TaskTreeExtension {
 
+    var inputs: Boolean = false
 
-open class TaskTreeExtension @Inject constructor() {
+    var outputs: Boolean = false
+
+    var maxDepth: Int = -1
+
+    var printClassName: Boolean = false
 
 
 }

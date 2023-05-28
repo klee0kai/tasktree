@@ -19,3 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "taskTree"
 includeBuild("tasktree")
+include("example")
