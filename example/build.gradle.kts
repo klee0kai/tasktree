@@ -15,7 +15,6 @@ tasktree {
     inputs = false
     outputs = false
     printClassName = true
-    maxDepth = 1
 
 }
 

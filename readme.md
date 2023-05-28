@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/badge/license-GNU_GPLv3-blue.svg?style=flat-square)](./LICENSE)
 
-Report graph of your build
+Print gradle build dependencies graph
 
 ## Usage
 

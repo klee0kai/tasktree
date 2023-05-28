@@ -25,7 +25,7 @@ gradlePlugin {
         version = "0.0.1"
         implementationClass = "com.github.klee0kai.tasktree.TaskTreePlugin"
         displayName = "Task Tree"
-        description = "Report gradle build graph"
+        description = "Print gradle build dependencies graph"
     }
 }
 

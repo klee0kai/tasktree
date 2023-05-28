@@ -1,13 +1,14 @@
 package com.github.klee0kai.tasktree.tasks
 
 import com.github.klee0kai.tasktree.TaskTreeExtension
-import com.github.klee0kai.tasktree.utils.executionPlan
+import com.github.klee0kai.tasktree.utils.requestedTasks
+import com.github.klee0kai.tasktree.utils.simpleClassName
+import com.github.klee0kai.tasktree.utils.taskGraph
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.diagnostics.ProjectBasedReportTask
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
-import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph
 import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import javax.inject.Inject
@@ -18,21 +19,12 @@ open class TaskTreeTask @Inject constructor(
 
     private val renderer = TextReportRenderer()
     private val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
-    private val taskGraph by lazy { project.gradle.taskGraph as DefaultTaskExecutionGraph }
-    private val executionPlan by lazy { taskGraph.executionPlan }
-    private val requestedTasks get() = executionPlan?.requestedTasks?.filter { it !is TaskTreeTask }
     private val renderedTasks = HashSet<Task>()
 
     override fun getRenderer(): ReportRenderer = renderer
 
-    init {
-        taskGraph.whenReady {
-            requestedTasks?.forEach { it.enabled = false }
-        }
-    }
-
     override fun generate(project: Project) {
-        requestedTasks?.forEach { render(it) }
+        project.requestedTasks?.forEach { render(it) }
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
@@ -75,7 +67,7 @@ open class TaskTreeTask @Inject constructor(
 
         graphRenderer?.startChildren()
 
-        val deps = taskGraph.getDependencies(task)
+        val deps = project.taskGraph.getDependencies(task)
         val depsSize = deps.size
         deps.forEachIndexed { indx, it ->
             val lastChild = indx >= depsSize - 1
@@ -88,7 +80,6 @@ open class TaskTreeTask @Inject constructor(
 
     private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle
 
-    private val Task.simpleClassName get() = this.javaClass.simpleName.removeSuffix("_Decorated")
 
 
 }
