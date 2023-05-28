@@ -35,22 +35,6 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(gradleApi())
-
-    // https://github.com/klee0kai/shlex
-    implementation("com.github.klee0kai:shlex:0.0.1")
-
-
-    // https://mvnrepository.com/artifact/com.android.tools.build/builder
-    implementation("com.android.tools.build:builder:7.4.2")
-
-    // https://mvnrepository.com/artifact/com.android.tools.build/gradle
-    implementation("com.android.tools.build:gradle:7.4.2")
-
-
-    // spock tests
-    testImplementation(platform("org.spockframework:spock-bom:2.2-groovy-3.0"))
-    testImplementation("org.spockframework:spock-core")
-
 }
 
 

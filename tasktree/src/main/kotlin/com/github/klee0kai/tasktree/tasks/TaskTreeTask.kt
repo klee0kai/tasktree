@@ -51,12 +51,12 @@ open class TaskTreeTask @Inject constructor(
                     .text(" (included build '${task.project.gradle.rootProject.name}')")
             }
 
-            val inputs = task.inputs.files.files
+            val inputs by lazy { task.inputs.files.files }
             if (ext.inputs && inputs.isNotEmpty())
                 withStyle(Description)
                     .text(" inputs: [ ${inputs.joinToString { it.path }} ] ")
 
-            val outputs = task.outputs.files.files
+            val outputs by lazy { task.outputs.files.files }
             if (ext.outputs && outputs.isNotEmpty())
                 withStyle(Description)
                     .text(" outputs: [ ${outputs.joinToString { it.path }} ] ")
