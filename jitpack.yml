@@ -2,4 +2,4 @@ jdk:
   - openjdk11
 install:
   - echo "publish crosscompile plugin"
-  - ./gradlew :klee0kai-crosscompile:publishPluginMavenPublicationToMavenLocal
+  - ./gradlew :tasktree:publishPluginMavenPublicationToMavenLocal
