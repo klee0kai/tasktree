@@ -43,13 +43,12 @@ Report your build graph
 
 ## Configure Init Script
 
-Configure your init script `$USER_HOME/.gradle/init.gradle.kts`
+Configure your init script `$HOME/.gradle/init.gradle.kts`
 [HowIt'sWork](https://docs.gradle.org/current/userguide/init_scripts.html).
 
 ```kotlin
 initscript {
     repositories {
-        mavenLocal()
         maven(url = "https://jitpack.io")
     }
     dependencies {
