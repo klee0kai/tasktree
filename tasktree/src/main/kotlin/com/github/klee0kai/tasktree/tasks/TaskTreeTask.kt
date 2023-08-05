@@ -55,7 +55,7 @@ open class TaskTreeTask @Inject constructor(
 
         }, lastChild)
 
-        if (task in renderedTasks || ext.maxDepth in 0..depth) {
+        if ((!ext.printDoubles && task in renderedTasks) || ext.maxDepth in 0..depth) {
             graphRenderer?.startChildren()
             graphRenderer?.visit({
                 withStyle(Normal)
@@ -64,22 +64,23 @@ open class TaskTreeTask @Inject constructor(
             graphRenderer?.completeChildren()
             return
         }
+        renderedTasks.add(task)
 
         graphRenderer?.startChildren()
-
-        val deps = project.taskGraph.getDependencies(task)
-        val depsSize = deps.size
-        deps.forEachIndexed { indx, it ->
-            val lastChild = indx >= depsSize - 1
-            render(it, lastChild = lastChild, depth = depth + 1)
+        try {
+            val deps = project.taskGraph.getDependencies(task)
+            val depsSize = deps.size
+            deps.forEachIndexed { indx, it ->
+                val lastChild = indx >= depsSize - 1
+                render(it, lastChild = lastChild, depth = depth + 1)
+            }
+        } catch (ignore: Exception) {
+            //ignore non available info
         }
-
         graphRenderer?.completeChildren()
-
     }
 
     private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle
-
 
 
 }

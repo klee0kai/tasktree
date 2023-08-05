@@ -10,6 +10,8 @@ open class TaskTreeExtension {
 
     var printClassName: Boolean = false
 
+    var printDoubles: Boolean = false
+
 
 }
 

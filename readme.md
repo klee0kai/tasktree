@@ -1,6 +1,7 @@
 ## TaskTree
 
 [![](https://img.shields.io/badge/license-GNU_GPLv3-blue.svg?style=flat-square)](./LICENSE)
+[![](https://jitpack.io/v/klee0kai/tasktree.svg)](https://jitpack.io/#klee0kai/tasktree)
 
 Print gradle build dependencies graph
 
@@ -14,7 +15,7 @@ buildscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.1")
+        classpath("com.github.klee0kai:tasktree:0.0.3")
     }
 }
 ```
@@ -42,17 +43,16 @@ Report your build graph
 
 ## Configure Init Script
 
-Configure your init script `$USER_HOME/.gradle/init.gradle.kts`
+Configure your init script `$HOME/.gradle/init.gradle.kts`
 [HowIt'sWork](https://docs.gradle.org/current/userguide/init_scripts.html).
 
 ```kotlin
 initscript {
     repositories {
-        mavenLocal()
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.1")
+        classpath("com.github.klee0kai:tasktree:0.0.3")
     }
 }
 
