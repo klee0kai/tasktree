@@ -55,7 +55,7 @@ open class TaskTreeTask @Inject constructor(
 
         }, lastChild)
 
-        if (task in renderedTasks || ext.maxDepth in 0..depth) {
+        if ((!ext.printDoubles && task in renderedTasks) || ext.maxDepth in 0..depth) {
             graphRenderer?.startChildren()
             graphRenderer?.visit({
                 withStyle(Normal)
@@ -64,6 +64,7 @@ open class TaskTreeTask @Inject constructor(
             graphRenderer?.completeChildren()
             return
         }
+        renderedTasks.add(task)
 
         graphRenderer?.startChildren()
         try {
@@ -77,7 +78,6 @@ open class TaskTreeTask @Inject constructor(
             //ignore non available info
         }
         graphRenderer?.completeChildren()
-
     }
 
     private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle
