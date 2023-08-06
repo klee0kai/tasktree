@@ -1,9 +1,7 @@
 package com.github.klee0kai.tasktree.tasks
 
 import com.github.klee0kai.tasktree.TaskTreeExtension
-import com.github.klee0kai.tasktree.utils.requestedTasks
-import com.github.klee0kai.tasktree.utils.simpleClassName
-import com.github.klee0kai.tasktree.utils.taskGraph
+import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.diagnostics.ProjectBasedReportTask
@@ -19,23 +17,58 @@ open class TaskTreeTask @Inject constructor(
 
     private val renderer = TextReportRenderer()
     private val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
-    private val renderedTasks = HashSet<Task>()
+    private val renderedTasks = mutableSetOf<Task>()
+    private val allTasks = mutableSetOf<Task>()
 
     override fun getRenderer(): ReportRenderer = renderer
 
     override fun generate(project: Project) {
+        project.requestedTasks?.flatMap {
+            setOf(it) + project.taskGraph.getAllDeps(it)
+        }?.let { allTasks.addAll(it) }
+
         project.requestedTasks?.forEach { render(it) }
+
+
+        renderedTasks.clear()
+        allTasks.clear()
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
         graphRenderer?.visit({
 
+            val allDeps by lazy { project.taskGraph.getAllDeps(task) }
+            val dependedCount by lazy {
+                allTasks.count {
+                    project.taskGraph
+                        .getDeps(it)
+                        .contains(task)
+                }
+            }
+            val complexPrice by lazy {
+                val depsCount = allDeps.size.toFloat()
+                val allTasksCount = allTasks.count().toFloat()
+                depsCount * (dependedCount / allTasksCount)
+            }
+
             withStyle(Identifier)
                 .text(task.name)
 
+            if (ext.printPrice) {
+                withStyle(Description)
+                    .text(" price: ${allDeps.size};")
+            }
+            if (ext.printWeight) {
+                withStyle(Description)
+                    .text(" weight: $dependedCount;")
+            }
+            if (ext.printComplexPrice) {
+                withStyle(Description)
+                    .text(" complexPrice: $complexPrice;")
+            }
             if (ext.printClassName) {
                 withStyle(Description)
-                    .text(" class: ${task.simpleClassName}")
+                    .text(" class: ${task.simpleClassName};")
             }
 
             if (task.isIncludedBuild) {
@@ -67,15 +100,11 @@ open class TaskTreeTask @Inject constructor(
         renderedTasks.add(task)
 
         graphRenderer?.startChildren()
-        try {
-            val deps = project.taskGraph.getDependencies(task)
-            val depsSize = deps.size
-            deps.forEachIndexed { indx, it ->
-                val lastChild = indx >= depsSize - 1
-                render(it, lastChild = lastChild, depth = depth + 1)
-            }
-        } catch (ignore: Exception) {
-            //ignore non available info
+        val deps = project.taskGraph.getDeps(task)
+        val depsSize = deps.size
+        deps.forEachIndexed { indx, it ->
+            val lastChild = indx >= depsSize - 1
+            render(it, lastChild = lastChild, depth = depth + 1)
         }
         graphRenderer?.completeChildren()
     }

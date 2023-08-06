@@ -9,12 +9,14 @@ tasks.create("simple_first_task") {
     tasks.getByName("assemble").dependsOn(this)
 }
 
-
 tasktree {
 
     inputs = false
     outputs = false
-    printClassName = true
+    printClassName = false
+    printPrice = true
+    printWeight = true
+    printComplexPrice = true
 
 }
 
