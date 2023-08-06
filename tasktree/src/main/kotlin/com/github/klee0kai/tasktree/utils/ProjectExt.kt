@@ -14,3 +14,19 @@ val Project.executionPlan get() = taskGraph.executionPlan
 val Project.isTaskTreeRequested get() = executionPlan?.requestedTasks?.any { it is TaskTreeTask } ?: false
 
 val Project.requestedTasks get() = executionPlan?.requestedTasks?.filter { it !is TaskTreeTask }
+
+fun DefaultTaskExecutionGraph.getAllDeps(task: Task): Set<Task> =
+    getDeps(task)
+        .flatMap {
+            setOf(it) + getAllDeps(it)
+        }
+        .toSet()
+
+
+fun DefaultTaskExecutionGraph.getDeps(task: Task): Set<Task> =
+    try {
+        getDependencies(task)
+    } catch (ignore: Exception) {
+        //ignore non available info
+        setOf()
+    }
