@@ -35,16 +35,22 @@ open class TaskTreeExtension {
     /**
      * Print depended task count
      */
-    var printWeight: Boolean = false
+    var printImportance: Boolean = false
 
     /**
      * Complex price
      * ```
-     * ( dependencies count ) * (depended task count) / ( all task count )
+     * ( price ) * ( importance )
      * ```
      * Show that task expensive to run and necessary for many others
      */
     var printComplexPrice: Boolean = false
+
+
+    /**
+     * List sorted list of most expensive tasks
+     */
+    var printMostExpensive: Boolean = false
 
 }
 

@@ -15,7 +15,7 @@ tasktree {
     outputs = false
     printClassName = false
     printPrice = true
-    printWeight = true
+    printImportance = true
     printComplexPrice = true
 
 }
