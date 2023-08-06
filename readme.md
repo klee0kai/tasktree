@@ -15,7 +15,7 @@ buildscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.3")
+        classpath("com.github.klee0kai:tasktree:0.0.4")
     }
 }
 ```
@@ -52,12 +52,17 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.3")
+        classpath("com.github.klee0kai:tasktree:0.0.4")
     }
 }
 
 rootProject{
     pluginManager.apply(com.github.klee0kai.tasktree.TaskTreePlugin::class.java)
+
+    extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
+        ?.apply {
+            printComplexPrice = true
+        }
 }
 ```
 
