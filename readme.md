@@ -58,6 +58,11 @@ initscript {
 
 rootProject{
     pluginManager.apply(com.github.klee0kai.tasktree.TaskTreePlugin::class.java)
+
+    extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
+        ?.apply {
+            printComplexPrice = true
+        }
 }
 ```
 
