@@ -1,9 +1,6 @@
 package com.github.klee0kai.tasktree.tasks
 
-import com.github.klee0kai.tasktree.utils.getAllDeps
-import com.github.klee0kai.tasktree.utils.getDeps
-import com.github.klee0kai.tasktree.utils.requestedTasks
-import com.github.klee0kai.tasktree.utils.taskGraph
+import com.github.klee0kai.tasktree.utils.*
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
@@ -37,7 +34,7 @@ open class DiagonDagTask @Inject constructor(
 
         val depsCode = allTasks.joinToString("\n") { task ->
             project.taskGraph.getDeps(task).joinToString("\n") { dep ->
-                "${dep.name} -> ${task.name}"
+                "${dep.fullName} ->  ${task.fullName}"
             }
         }
 

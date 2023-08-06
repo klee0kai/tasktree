@@ -21,6 +21,8 @@ val Project.requestedTasks
         it !is TaskTreeTask && it !is DiagonDagTask
     }
 
+val Project.parents get() = generateSequence(this) { it.parent }
+
 fun DefaultTaskExecutionGraph.getAllDeps(task: Task): Set<Task> =
     getDeps(task)
         .flatMap {
