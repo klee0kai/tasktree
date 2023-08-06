@@ -2,10 +2,7 @@ package com.github.klee0kai.tasktree
 
 import com.github.klee0kai.tasktree.tasks.DiagonDagTask
 import com.github.klee0kai.tasktree.tasks.TaskTreeTask
-import com.github.klee0kai.tasktree.utils.isDiagonGraphRequested
-import com.github.klee0kai.tasktree.utils.isTaskTreeRequested
-import com.github.klee0kai.tasktree.utils.requestedTasks
-import com.github.klee0kai.tasktree.utils.taskGraph
+import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -20,7 +17,11 @@ open class TaskTreePlugin : Plugin<Project> {
 
         taskGraph.whenReady {
             if (isTaskTreeRequested || isDiagonGraphRequested) {
-                requestedTasks?.forEach { it.enabled = false }
+                requestedTasks
+                    ?.flatMap { project.taskGraph.getAllDeps(it) }
+                    ?.forEach {
+                        it.enabled = false
+                    }
             }
         }
     }
