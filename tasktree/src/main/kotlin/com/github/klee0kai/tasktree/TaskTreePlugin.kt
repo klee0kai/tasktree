@@ -1,8 +1,8 @@
 package com.github.klee0kai.tasktree
 
+import com.github.klee0kai.tasktree.tasks.DiagonDagTask
 import com.github.klee0kai.tasktree.tasks.TaskTreeTask
-import com.github.klee0kai.tasktree.utils.isTaskTreeRequested
-import com.github.klee0kai.tasktree.utils.taskGraph
+import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -13,11 +13,15 @@ open class TaskTreePlugin : Plugin<Project> {
     private fun Project.applyOnProject() {
         val ext = extensions.create("tasktree", TaskTreeExtension::class.java)
         tasks.register("tasktree", TaskTreeTask::class.java, ext)
+        tasks.register("diagonDAG", DiagonDagTask::class.java)
 
         taskGraph.whenReady {
-            if (isTaskTreeRequested) {
-                tasks.filter { it !is TaskTreeTask }
-                    .forEach { it.enabled = false }
+            if (isTaskTreeRequested || isDiagonGraphRequested) {
+                requestedTasks
+                    ?.flatMap { project.taskGraph.getAllDeps(it) }
+                    ?.forEach {
+                        it.enabled = false
+                    }
             }
         }
     }

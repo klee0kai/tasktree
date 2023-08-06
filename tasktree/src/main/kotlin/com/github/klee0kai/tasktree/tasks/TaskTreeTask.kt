@@ -52,7 +52,7 @@ open class TaskTreeTask @Inject constructor(
             }
 
             withStyle(Identifier)
-                .text(task.name)
+                .text(task.fullName)
 
             if (ext.printPrice) {
                 withStyle(Description)
