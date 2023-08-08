@@ -33,7 +33,7 @@ val Project.requestedTasks
         it !is TaskTreeTask && it !is DiagonDagTask
     }
 
-val Project.parents get() = generateSequence(this) { it.parent }
+val Project.parents get() = generateSequence(this) { runCatching { it.parent }.getOrNull() }
 
 fun DefaultTaskExecutionGraph.getAllDeps(task: Task): Set<Task> =
     getDeps(task)
