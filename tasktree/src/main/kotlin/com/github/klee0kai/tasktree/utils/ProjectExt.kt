@@ -6,6 +6,18 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph
 
+val Project.fullName
+    get() = buildString {
+        parents
+            .toList()
+            .reversed()
+            .forEach { project ->
+                val isRoot = project.parent == null
+                if (!isRoot) append(":${project.name}")
+            }
+        append(":${name}")
+    }
+
 val Task.simpleClassName get() = this.javaClass.simpleName.removeSuffix("_Decorated")
 
 val Project.taskGraph get() = gradle.taskGraph as DefaultTaskExecutionGraph
@@ -21,7 +33,7 @@ val Project.requestedTasks
         it !is TaskTreeTask && it !is DiagonDagTask
     }
 
-val Project.parents get() = generateSequence(this) { it.parent }
+val Project.parents get() = generateSequence(this) { runCatching { it.parent }.getOrNull() }
 
 fun DefaultTaskExecutionGraph.getAllDeps(task: Task): Set<Task> =
     getDeps(task)

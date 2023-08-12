@@ -18,7 +18,7 @@ open class TaskTreePlugin : Plugin<Project> {
         taskGraph.whenReady {
             if (isTaskTreeRequested || isDiagonGraphRequested) {
                 requestedTasks
-                    ?.flatMap { project.taskGraph.getAllDeps(it) }
+                    ?.flatMap { setOf(it) + project.taskGraph.getAllDeps(it) }
                     ?.forEach {
                         it.enabled = false
                     }
