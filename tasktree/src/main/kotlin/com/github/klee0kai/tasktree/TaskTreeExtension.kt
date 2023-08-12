@@ -50,7 +50,12 @@ open class TaskTreeExtension {
     /**
      * List sorted list of most expensive tasks
      */
-    var printMostExpensive: Boolean = false
+    var printMostExpensiveTasks: Boolean = false
+
+    /**
+     * List sorted list of most expensive modules
+     */
+    var printMostExpensiveModules: Boolean = false
 
 }
 

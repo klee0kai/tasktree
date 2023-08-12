@@ -15,7 +15,6 @@ val Project.fullName
                 val isRoot = project.parent == null
                 if (!isRoot) append(":${project.name}")
             }
-        append(":${name}")
     }
 
 val Task.simpleClassName get() = this.javaClass.simpleName.removeSuffix("_Decorated")
