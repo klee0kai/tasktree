@@ -21,7 +21,7 @@ gradlePlugin {
     plugins.register("tasktree") {
         id = "tasktree"
         group = "com.github.klee0kai"
-        version = "0.0.5"
+        version = "0.0.6"
         implementationClass = "com.github.klee0kai.tasktree.TaskTreePlugin"
         displayName = "Task Tree"
         description = "Print gradle build dependencies graph"
