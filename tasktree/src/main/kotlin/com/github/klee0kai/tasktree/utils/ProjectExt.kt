@@ -6,6 +6,8 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph
 
+private const val RECURSIVE_DETECT = 1000
+
 val Project.fullName
     get() = buildString {
         parents
@@ -27,12 +29,16 @@ val Project.allRequestedTasks
         .flatMap { setOf(it) + taskGraph.getAllDeps(it) }
         .toSet()
 
-val Project.parents get() = generateSequence(this) { runCatching { it.parent }.getOrNull() }
+val Project.parents
+    get() = generateSequence(this) {
+        runCatching { it.parent }.getOrNull()
+    }.take(RECURSIVE_DETECT)
 
-fun DefaultTaskExecutionGraph.getAllDeps(task: Task): Set<Task> =
+fun DefaultTaskExecutionGraph.getAllDeps(task: Task, depth: Int = RECURSIVE_DETECT): Set<Task> =
     getDeps(task)
         .flatMap {
-            setOf(it) + getAllDeps(it)
+            val depTasks = if (depth > 0) getAllDeps(it, depth = depth - 1) else emptyList()
+            setOf(it) + depTasks
         }
         .toSet()
 
