@@ -1,8 +1,7 @@
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:7.2.2")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.21")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.7.21")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.21")
+        classpath("org.jetbrains.kotlin:kotlin-serialization:1.8.21")
     }
 }
 
@@ -13,8 +12,8 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 

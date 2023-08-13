@@ -5,31 +5,21 @@ import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.diagnostics.ProjectBasedReportTask
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
-import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import javax.inject.Inject
 
 open class TaskTreeTask @Inject constructor(
-    private val ext: TaskTreeExtension
-) : ProjectBasedReportTask() {
+    private val ext: TaskTreeExtension,
+) : BaseReportTask() {
 
-    private val renderer = TextReportRenderer()
-    private val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
     private val renderedTasks = mutableSetOf<Task>()
-    private val allTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
 
-    override fun getRenderer(): ReportRenderer = renderer
 
     override fun generate(project: Project) {
-        project.requestedTasks
-            ?.flatMap {
-                setOf(it) + project.taskGraph.getAllDeps(it)
-            }?.let { allTasks.addAll(it) }
+        val allTasks = project.allRequestedTasks.toSet()
+
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
                 task,
@@ -40,12 +30,16 @@ open class TaskTreeTask @Inject constructor(
                 )
             )
         }
-        project.requestedTasks?.forEach { render(it) }
+
+        val topTasks = taskStat.values
+            .filter { it.allDependedOnCount <= 0 }
+            .map { it.task }
+        topTasks.forEach { render(it) }
+
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
 
         renderedTasks.clear()
-        allTasks.clear()
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
@@ -162,6 +156,7 @@ open class TaskTreeTask @Inject constructor(
     }
 
     private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle
+
 
 }
 

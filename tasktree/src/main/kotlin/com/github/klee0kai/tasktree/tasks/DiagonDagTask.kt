@@ -1,12 +1,14 @@
 package com.github.klee0kai.tasktree.tasks
 
-import com.github.klee0kai.tasktree.utils.*
+import com.github.klee0kai.tasktree.utils.allRequestedTasks
+import com.github.klee0kai.tasktree.utils.fullName
+import com.github.klee0kai.tasktree.utils.getDeps
+import com.github.klee0kai.tasktree.utils.taskGraph
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.diagnostics.ProjectReportTask
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
@@ -18,7 +20,8 @@ open class DiagonDagTask @Inject constructor(
     val objectFactory: ObjectFactory,
     @Input
     val execAction: ExecActionFactory,
-) : ProjectReportTask() {
+) : BaseReportTask() {
+
 
     @Internal
     override fun getDescription(): String =
@@ -26,11 +29,7 @@ open class DiagonDagTask @Inject constructor(
 
 
     override fun generate(project: Project) {
-        super.generate(project)
-        val allTasks = project.requestedTasks?.flatMap {
-            setOf(it) + project.taskGraph.getAllDeps(it)
-        }?.toSet() ?: emptySet()
-
+        val allTasks = project.allRequestedTasks.toSet()
 
         val depsCode = allTasks.joinToString("\n") { task ->
             project.taskGraph.getDeps(task).joinToString("\n") { dep ->
