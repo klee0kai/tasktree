@@ -19,7 +19,6 @@ open class TaskTreeTask @Inject constructor(
 
     override fun generate(project: Project) {
         val allTasks = project.allRequestedTasks.toSet()
-
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
                 task,
@@ -30,6 +29,18 @@ open class TaskTreeTask @Inject constructor(
                 )
             )
         }
+        taskStat.values.forEach { stat ->
+            val allDeps = project.taskGraph.getAllDeps(stat.task)
+            stat.allDepsCount += allDeps.count()
+            allDeps.forEach {
+                val depStat = taskStat[it]!!
+                depStat.allDependedOnCount++
+                if (depStat.task.project != stat.task.project) {
+                    depStat.allDependedOnOutsideProjectCount++
+                }
+            }
+        }
+
 
         val topTasks = taskStat.values
             .filter { it.allDependedOnCount <= 0 }
