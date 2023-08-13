@@ -9,13 +9,13 @@ import org.gradle.kotlin.dsl.provideDelegate
 class TaskStat(
     val task: Task,
     val allTasks: Set<Task>,
-    val project: Project,
+    val rootProject: Project,
 ) {
 
-    val allDepsCount by lazy { project.taskGraph.getAllDeps(task).count() }
+    val allDepsCount by lazy { rootProject.taskGraph.getAllDeps(task).count() }
     val allDependedOnCount by lazy {
         allTasks.count {
-            project.taskGraph
+            rootProject.taskGraph
                 .getAllDeps(it)
                 .contains(task)
         }
@@ -27,4 +27,16 @@ class TaskStat(
         (price * importance).toFloat() / allTasks.size
     }
 
+
+    // ---- outside of project ------
+    val allDependedOnOutsideProjectCount by lazy {
+        allTasks.count {
+            it.project != task.project &&
+                    rootProject.taskGraph
+                        .getAllDeps(it)
+                        .contains(task)
+        }
+    }
+    val importanceOutsideProject by lazy { allDependedOnOutsideProjectCount }
+    val complexPriceOutsideProject by lazy { (price * importanceOutsideProject).toFloat() / allTasks.size }
 }

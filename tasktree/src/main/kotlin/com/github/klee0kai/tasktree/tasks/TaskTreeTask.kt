@@ -36,12 +36,13 @@ open class TaskTreeTask @Inject constructor(
                 TaskStat(
                     task = task,
                     allTasks = allTasks,
-                    project = project
+                    rootProject = project
                 )
             )
         }
         project.requestedTasks?.forEach { render(it) }
         printMostExpensiveTasksIfNeed()
+        printMostExpensiveModulesIfNeed()
 
         renderedTasks.clear()
         allTasks.clear()
@@ -96,9 +97,8 @@ open class TaskTreeTask @Inject constructor(
         graphRenderer?.completeChildren()
     }
 
-
     private fun printMostExpensiveTasksIfNeed() {
-        if (ext.printMostExpensive) {
+        if (ext.printMostExpensiveTasks) {
             val allStat = taskStat.values
                 .filter { it.complexPrice > 0 }
                 .sortedByDescending { it.complexPrice }
@@ -116,6 +116,32 @@ open class TaskTreeTask @Inject constructor(
         }
     }
 
+    private fun printMostExpensiveModulesIfNeed() {
+        if (ext.printMostExpensiveModules) {
+            val allStat = taskStat.values
+                .groupBy { it.task.project }
+                .map { (pr, stat) -> pr to stat.sumOf { it.complexPriceOutsideProject.toDouble() } }
+                .sortedByDescending { (_, price) -> price }
+
+            renderer.textOutput
+                .println()
+                .withStyle(Header)
+                .println("Most expensive modules:")
+
+            allStat.forEach { (proj, price) ->
+                renderer.textOutput.apply {
+                    withStyle(Identifier)
+                        .text(proj.fullName)
+
+                    withStyle(Description)
+                        .text(" complexPrice: ${price.formatString()}")
+
+                    println()
+                }
+            }
+            renderer.textOutput.println()
+        }
+    }
 
     private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
         withStyle(Identifier)
