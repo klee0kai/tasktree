@@ -27,10 +27,7 @@ open class DiagonDagTask @Inject constructor(
 
     override fun generate(project: Project) {
         super.generate(project)
-        val allTasks = project.requestedTasks?.flatMap {
-            setOf(it) + project.taskGraph.getAllDeps(it)
-        }?.toSet() ?: emptySet()
-
+        val allTasks = project.allRequestedTasks?.toSet() ?: emptySet()
 
         val depsCode = allTasks.joinToString("\n") { task ->
             project.taskGraph.getDeps(task).joinToString("\n") { dep ->

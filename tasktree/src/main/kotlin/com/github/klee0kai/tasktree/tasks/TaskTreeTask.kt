@@ -20,16 +20,13 @@ open class TaskTreeTask @Inject constructor(
     private val renderer = TextReportRenderer()
     private val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
     private val renderedTasks = mutableSetOf<Task>()
-    private val allTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
 
     override fun getRenderer(): ReportRenderer = renderer
 
     override fun generate(project: Project) {
-        project.requestedTasks
-            ?.flatMap {
-                setOf(it) + project.taskGraph.getAllDeps(it)
-            }?.let { allTasks.addAll(it) }
+        val allTasks = project.allRequestedTasks?.toSet() ?: return
+
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
                 task,
@@ -45,7 +42,6 @@ open class TaskTreeTask @Inject constructor(
         printMostExpensiveModulesIfNeed()
 
         renderedTasks.clear()
-        allTasks.clear()
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {

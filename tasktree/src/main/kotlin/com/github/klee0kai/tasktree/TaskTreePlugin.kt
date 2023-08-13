@@ -16,7 +16,7 @@ open class TaskTreePlugin : Plugin<Project> {
         tasks.register("diagonDAG", DiagonDagTask::class.java)
 
         taskGraph.whenReady {
-            if (isTaskTreeRequested || isDiagonGraphRequested) {
+            if (isTaskTreeRequested) {
                 requestedTasks
                     ?.flatMap { setOf(it) + project.taskGraph.getAllDeps(it) }
                     ?.forEach {
