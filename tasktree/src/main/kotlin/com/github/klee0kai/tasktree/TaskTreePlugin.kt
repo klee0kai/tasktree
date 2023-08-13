@@ -17,10 +17,9 @@ open class TaskTreePlugin : Plugin<Project> {
 
         taskGraph.whenReady {
             val isTaskTreeRequested = hasTask(taskTree.get()) || hasTask(taskDag.get())
-            requestedTasksReflection?.forEach {
-                println("requested task ${it.fullName} ${it.simpleClassName} ; $it")
-            }
             if (isTaskTreeRequested) {
+                taskTree.get().requestedTasks = requestedTasksReflection
+
                 allRequestedTasks.forEach {
                     it.enabled = false
                 }

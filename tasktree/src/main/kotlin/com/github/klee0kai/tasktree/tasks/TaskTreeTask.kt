@@ -5,27 +5,25 @@ import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.diagnostics.ProjectBasedReportTask
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
-import org.gradle.internal.graph.GraphRenderer
+import org.gradle.api.tasks.Internal
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import javax.inject.Inject
 
 open class TaskTreeTask @Inject constructor(
-    private val ext: TaskTreeExtension
-) : ProjectBasedReportTask() {
+    private val ext: TaskTreeExtension,
+) : BaseReportTask() {
 
-    private val renderer = TextReportRenderer()
-    private val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
+    @Internal
+    var requestedTasks: Set<Task> = emptySet()
+
     private val renderedTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
 
-    override fun getRenderer(): ReportRenderer = renderer
+
 
     override fun generate(project: Project) {
-        val allTasks = project.allRequestedTasks?.toSet() ?: return
+        val allTasks = project.allRequestedTasks.toSet()
 
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
@@ -37,7 +35,8 @@ open class TaskTreeTask @Inject constructor(
                 )
             )
         }
-        project.requestedTasksReflection.forEach { render(it) }
+        requestedTasks.forEach { render(it) }
+
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
 
@@ -158,6 +157,7 @@ open class TaskTreeTask @Inject constructor(
     }
 
     private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle
+
 
 }
 
