@@ -15,6 +15,7 @@ open class TaskTreeTask @Inject constructor(
 
     private val renderedTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
+    private val depsGraph = mutableMapOf<Task, Set<Task>>()
 
 
     override fun generate(project: Project) {
@@ -28,9 +29,11 @@ open class TaskTreeTask @Inject constructor(
                     rootProject = project
                 )
             )
+            depsGraph.putIfAbsent(task, project.taskGraph.getDeps(task))
         }
+
         taskStat.values.forEach { stat ->
-            val allDeps = project.taskGraph.getAllDeps(stat.task)
+            val allDeps = stat.task.getAllDeps()
             stat.allDepsCount += allDeps.count()
             allDeps.forEach {
                 val depStat = taskStat[it]!!
@@ -145,6 +148,16 @@ open class TaskTreeTask @Inject constructor(
                 }
             }
             renderer.textOutput.println()
+        }
+    }
+
+    private fun Task.getAllDeps(): Sequence<Task> {
+        val task = this
+        return sequence {
+            depsGraph[task]?.let { deps ->
+                yieldAll(deps)
+                deps.forEach { yieldAll(it.getAllDeps()) }
+            }
         }
     }
 
