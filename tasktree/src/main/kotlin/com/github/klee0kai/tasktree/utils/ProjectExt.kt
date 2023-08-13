@@ -22,7 +22,10 @@ val Task.simpleClassName get() = this.javaClass.simpleName.removeSuffix("_Decora
 val Project.taskGraph get() = gradle.taskGraph as DefaultTaskExecutionGraph
 
 val Project.allRequestedTasks
-    get() = taskGraph.allTasks.filter { it !is TaskTreeTask && it !is DiagonDagTask }
+    get() = taskGraph.allTasks
+        .filter { it !is TaskTreeTask && it !is DiagonDagTask }
+        .flatMap { setOf(it) + taskGraph.getAllDeps(it) }
+        .toSet()
 
 val Project.parents get() = generateSequence(this) { runCatching { it.parent }.getOrNull() }
 

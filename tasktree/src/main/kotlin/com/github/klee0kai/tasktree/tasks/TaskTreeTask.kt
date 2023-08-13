@@ -5,7 +5,6 @@ import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.Internal
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import javax.inject.Inject
@@ -14,12 +13,8 @@ open class TaskTreeTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
-    @Internal
-    var requestedTasks: Set<Task> = emptySet()
-
     private val renderedTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
-
 
 
     override fun generate(project: Project) {
@@ -35,7 +30,11 @@ open class TaskTreeTask @Inject constructor(
                 )
             )
         }
-        requestedTasks.forEach { render(it) }
+
+        val topTasks = taskStat.values
+            .filter { it.allDependedOnCount <= 0 }
+            .map { it.task }
+        topTasks.forEach { render(it) }
 
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
