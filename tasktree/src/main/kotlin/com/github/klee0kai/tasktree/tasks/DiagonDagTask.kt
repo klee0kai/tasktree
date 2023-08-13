@@ -9,7 +9,6 @@ import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
@@ -29,7 +28,6 @@ open class DiagonDagTask @Inject constructor(
         "Draw tasktree graph use Diagon. More: https://github.com/ArthurSonzogni/Diagon"
 
 
-    @TaskAction
     override fun generate(project: Project) {
         val allTasks = project.allRequestedTasks.toSet()
 
