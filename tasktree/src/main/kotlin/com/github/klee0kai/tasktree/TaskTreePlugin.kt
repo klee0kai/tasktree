@@ -12,19 +12,18 @@ open class TaskTreePlugin : Plugin<Project> {
 
     private fun Project.applyOnProject() {
         val ext = extensions.create("tasktree", TaskTreeExtension::class.java)
-        tasks.register("tasktree", TaskTreeTask::class.java, ext)
-        tasks.register("diagonDAG", DiagonDagTask::class.java)
+        val taskTree = tasks.register("tasktree", TaskTreeTask::class.java, ext)
+        val taskDag = tasks.register("diagonDAG", DiagonDagTask::class.java)
 
         taskGraph.whenReady {
-            requestedTasks?.forEach {
+            val isTaskTreeRequested = hasTask(taskTree.get()) || hasTask(taskDag.get())
+            requestedTasksReflection?.forEach {
                 println("requested task ${it.fullName} ${it.simpleClassName} ; $it")
             }
             if (isTaskTreeRequested) {
-                requestedTasks
-                    ?.flatMap { setOf(it) + project.taskGraph.getAllDeps(it) }
-                    ?.forEach {
-                        it.enabled = false
-                    }
+                allRequestedTasks.forEach {
+                    it.enabled = false
+                }
             }
         }
     }

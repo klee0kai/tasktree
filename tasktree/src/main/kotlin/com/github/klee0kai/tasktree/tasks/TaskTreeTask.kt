@@ -37,7 +37,7 @@ open class TaskTreeTask @Inject constructor(
                 )
             )
         }
-        project.requestedTasks?.forEach { render(it) }
+        project.requestedTasksReflection.forEach { render(it) }
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
 
