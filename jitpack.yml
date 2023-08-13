@@ -1,5 +1,5 @@
 jdk:
-  - openjdk17
+  - openjdk11
 install:
   - echo "publish crosscompile plugin"
   - ./gradlew :tasktree:publishPluginMavenPublicationToMavenLocal
