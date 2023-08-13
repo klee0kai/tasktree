@@ -1,71 +1,53 @@
 package com.github.klee0kai.tasktree.tasks
 
+import com.github.klee0kai.tasktree.TaskStat
 import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.utils.*
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.tasks.diagnostics.ProjectBasedReportTask
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
-import org.gradle.internal.graph.GraphRenderer
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import javax.inject.Inject
 
 open class TaskTreeTask @Inject constructor(
-    private val ext: TaskTreeExtension
-) : ProjectBasedReportTask() {
+    private val ext: TaskTreeExtension,
+) : BaseReportTask() {
 
-    private val renderer = TextReportRenderer()
-    private val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
     private val renderedTasks = mutableSetOf<Task>()
-    private val allTasks = mutableSetOf<Task>()
+    private val taskStat = mutableMapOf<Task, TaskStat>()
 
-    override fun getRenderer(): ReportRenderer = renderer
 
     override fun generate(project: Project) {
-        project.requestedTasks?.flatMap {
-            setOf(it) + project.taskGraph.getAllDeps(it)
-        }?.let { allTasks.addAll(it) }
+        val allTasks = project.allRequestedTasks.toSet()
 
-        project.requestedTasks?.forEach { render(it) }
+        allTasks.forEach { task ->
+            taskStat.putIfAbsent(
+                task,
+                TaskStat(
+                    task = task,
+                    allTasks = allTasks,
+                    rootProject = project
+                )
+            )
+        }
 
+        val topTasks = taskStat.values
+            .filter { it.allDependedOnCount <= 0 }
+            .map { it.task }
+        topTasks.forEach { render(it) }
+
+        printMostExpensiveTasksIfNeed()
+        printMostExpensiveModulesIfNeed()
 
         renderedTasks.clear()
-        allTasks.clear()
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
         graphRenderer?.visit({
+            val taskStat = taskStat[task] ?: return@visit
 
-            val allDeps by lazy { project.taskGraph.getAllDeps(task) }
-            val dependedCount by lazy {
-                allTasks.count {
-                    project.taskGraph
-                        .getDeps(it)
-                        .contains(task)
-                }
-            }
-            val complexPrice by lazy {
-                val depsCount = allDeps.size.toFloat()
-                val allTasksCount = allTasks.count().toFloat()
-                depsCount * (dependedCount / allTasksCount)
-            }
+            printTaskShort(taskStat)
 
-            withStyle(Identifier)
-                .text(task.fullName)
-
-            if (ext.printPrice) {
-                withStyle(Description)
-                    .text(" price: ${allDeps.size};")
-            }
-            if (ext.printWeight) {
-                withStyle(Description)
-                    .text(" weight: $dependedCount;")
-            }
-            if (ext.printComplexPrice) {
-                withStyle(Description)
-                    .text(" complexPrice: $complexPrice;")
-            }
             if (ext.printClassName) {
                 withStyle(Description)
                     .text(" class: ${task.simpleClassName};")
@@ -107,6 +89,70 @@ open class TaskTreeTask @Inject constructor(
             render(it, lastChild = lastChild, depth = depth + 1)
         }
         graphRenderer?.completeChildren()
+    }
+
+    private fun printMostExpensiveTasksIfNeed() {
+        if (ext.printMostExpensiveTasks) {
+            val allStat = taskStat.values
+                .filter { it.complexPrice > 0 }
+                .sortedByDescending { it.complexPrice }
+            renderer.textOutput
+                .println()
+                .withStyle(Header)
+                .println("Most expensive tasks:")
+
+            allStat.forEach {
+                renderer.textOutput
+                    .printTaskShort(it)
+                    .println()
+            }
+            renderer.textOutput.println()
+        }
+    }
+
+    private fun printMostExpensiveModulesIfNeed() {
+        if (ext.printMostExpensiveModules) {
+            val allStat = taskStat.values
+                .groupBy { it.task.project }
+                .map { (pr, stat) -> pr to stat.sumOf { it.complexPriceOutsideProject.toDouble() } }
+                .sortedByDescending { (_, price) -> price }
+
+            renderer.textOutput
+                .println()
+                .withStyle(Header)
+                .println("Most expensive modules:")
+
+            allStat.forEach { (proj, price) ->
+                renderer.textOutput.apply {
+                    withStyle(Identifier)
+                        .text(proj.fullName)
+
+                    withStyle(Description)
+                        .text(" complexPrice: ${price.formatString()}")
+
+                    println()
+                }
+            }
+            renderer.textOutput.println()
+        }
+    }
+
+    private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
+        withStyle(Identifier)
+            .text(taskStat.task.fullName)
+
+        if (ext.printPrice) {
+            withStyle(Description)
+                .text(" price: ${taskStat.price};")
+        }
+        if (ext.printImportance) {
+            withStyle(Description)
+                .text(" importance: ${taskStat.importance};")
+        }
+        if (ext.printComplexPrice) {
+            withStyle(Description)
+                .text(" complexPrice: ${taskStat.complexPrice.formatString()};")
+        }
     }
 
     private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle

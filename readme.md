@@ -3,7 +3,7 @@
 [![](https://img.shields.io/badge/license-GNU_GPLv3-blue.svg?style=flat-square)](./LICENSE)
 [![](https://jitpack.io/v/klee0kai/tasktree.svg)](https://jitpack.io/#klee0kai/tasktree)
 
-Print gradle build dependencies graph
+Print gradle task dependencies graph
 
 ## Usage
 
@@ -15,7 +15,7 @@ buildscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.4")
+        classpath("com.github.klee0kai:tasktree:0.0.6")
     }
 }
 ```
@@ -52,7 +52,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.4")
+        classpath("com.github.klee0kai:tasktree:0.0.6")
     }
 }
 
