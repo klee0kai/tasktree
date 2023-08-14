@@ -16,8 +16,10 @@ open class TaskTreeTask @Inject constructor(
     private val renderedTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
 
-
     override fun generate(project: Project) {
+        renderedTasks.clear()
+        taskStat.clear()
+
         val allTasks = project.allRequestedTasks.toSet()
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
@@ -35,7 +37,7 @@ open class TaskTreeTask @Inject constructor(
         allTasks.forEach { task ->
             val stat = taskStat[task]!!
             val deps = project.taskGraph.getDeps(task)
-            stat.allDepsCount += deps.count() + deps.sumOf { dep ->
+            stat.allDepsCount = deps.count() + deps.sumOf { dep ->
                 taskStat[dep]!!.allDepsCount
             }
         }
@@ -59,7 +61,7 @@ open class TaskTreeTask @Inject constructor(
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
 
-        renderedTasks.clear()
+
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
@@ -168,6 +170,10 @@ open class TaskTreeTask @Inject constructor(
         if (ext.printImportance) {
             withStyle(Description)
                 .text(" importance: ${taskStat.importance};")
+        }
+        if (ext.printImportanceOutSide) {
+            withStyle(Description)
+                .text(" importance outside: ${taskStat.importanceOutsideProject};")
         }
         if (ext.printComplexPrice) {
             withStyle(Description)

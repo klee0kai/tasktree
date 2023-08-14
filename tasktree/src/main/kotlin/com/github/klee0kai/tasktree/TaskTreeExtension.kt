@@ -28,14 +28,19 @@ open class TaskTreeExtension {
     var printDoubles: Boolean = false
 
     /**
-     * Print dependency count for task
+     * Print the number of dependencies for a task
      */
     var printPrice: Boolean = false
 
     /**
-     * Print depended task count
+     * Print number of dependent tasks
      */
     var printImportance: Boolean = false
+
+    /**
+     * Print the number of dependent tasks from another project
+     */
+    var printImportanceOutSide: Boolean = false
 
     /**
      * Complex price
