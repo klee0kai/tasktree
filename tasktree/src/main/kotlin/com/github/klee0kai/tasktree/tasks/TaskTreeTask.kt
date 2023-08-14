@@ -15,7 +15,6 @@ open class TaskTreeTask @Inject constructor(
 
     private val renderedTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
-    private val depsGraph = mutableMapOf<Task, Set<Task>>()
 
 
     override fun generate(project: Project) {
@@ -29,21 +28,28 @@ open class TaskTreeTask @Inject constructor(
                     rootProject = project
                 )
             )
-            depsGraph.putIfAbsent(task, project.taskGraph.getDeps(task))
         }
 
-        taskStat.values.forEach { stat ->
-            val allDeps = stat.task.getAllDeps()
-            stat.allDepsCount += allDeps.count()
-            allDeps.forEach {
-                val depStat = taskStat[it]!!
-                depStat.allDependedOnCount++
-                if (depStat.task.project != stat.task.project) {
-                    depStat.allDependedOnOutsideProjectCount++
-                }
+        //https://docs.gradle.org/current/javadoc/org/gradle/api/execution/TaskExecutionGraph.html#getAllTasks--
+        // use sorted list
+        allTasks.forEach { task ->
+            val stat = taskStat[task]!!
+            val deps = project.taskGraph.getDeps(task)
+            stat.allDepsCount += deps.count() + deps.sumOf { dep ->
+                taskStat[dep]!!.allDepsCount
             }
         }
+        allTasks.reversed().forEach { task ->
+            val stat = taskStat[task]!!
+            project.taskGraph.getDeps(task).forEach {
+                val depStat = taskStat[it]!!
+                depStat.allDependedOnCount += 1 + stat.allDependedOnCount
+                if (depStat.task.project != stat.task.project) {
+                    depStat.allDependedOnOutsideProjectCount += 1 + stat.allDependedOnCount
+                }
+            }
 
+        }
 
         val topTasks = taskStat.values
             .filter { it.allDependedOnCount <= 0 }
@@ -148,16 +154,6 @@ open class TaskTreeTask @Inject constructor(
                 }
             }
             renderer.textOutput.println()
-        }
-    }
-
-    private fun Task.getAllDeps(): Sequence<Task> {
-        val task = this
-        return sequence {
-            depsGraph[task]?.let { deps ->
-                yieldAll(deps)
-                deps.forEach { yieldAll(it.getAllDeps()) }
-            }
         }
     }
 
