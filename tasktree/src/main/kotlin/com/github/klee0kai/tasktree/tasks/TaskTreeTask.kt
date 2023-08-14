@@ -14,29 +14,29 @@ open class TaskTreeTask @Inject constructor(
 ) : BaseReportTask() {
 
     private val renderedTasks = mutableSetOf<Task>()
-    private val taskStat = mutableMapOf<String, TaskStat>()
-    private val depsGraph = mutableMapOf<String, Set<Task>>()
+    private val taskStat = mutableMapOf<Task, TaskStat>()
+    private val depsGraph = mutableMapOf<Task, Set<Task>>()
 
 
     override fun generate(project: Project) {
         val allTasks = project.allRequestedTasks.toSet()
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
-                task.fullName,
+                task,
                 TaskStat(
                     task = task,
                     allTasks = allTasks,
                     rootProject = project
                 )
             )
-            depsGraph.putIfAbsent(task.fullName, project.taskGraph.getDeps(task))
+            depsGraph.putIfAbsent(task, project.taskGraph.getDeps(task))
         }
 
         taskStat.values.forEach { stat ->
             val allDeps = stat.task.getAllDeps()
             stat.allDepsCount += allDeps.count()
             allDeps.forEach {
-                val depStat = taskStat[it.fullName]!!
+                val depStat = taskStat[it]!!
                 depStat.allDependedOnCount++
                 if (depStat.task.project != stat.task.project) {
                     depStat.allDependedOnOutsideProjectCount++
@@ -58,7 +58,7 @@ open class TaskTreeTask @Inject constructor(
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
         graphRenderer?.visit({
-            val taskStat = taskStat[task.fullName] ?: return@visit
+            val taskStat = taskStat[task] ?: return@visit
 
             printTaskShort(taskStat)
 
@@ -154,7 +154,7 @@ open class TaskTreeTask @Inject constructor(
     private fun Task.getAllDeps(): Sequence<Task> {
         val task = this
         return sequence {
-            depsGraph[task.fullName]?.let { deps ->
+            depsGraph[task]?.let { deps ->
                 yieldAll(deps)
                 deps.forEach { yieldAll(it.getAllDeps()) }
             }
