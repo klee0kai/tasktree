@@ -16,10 +16,11 @@ open class TaskTreeTask @Inject constructor(
     private val renderedTasks = mutableSetOf<Task>()
     private val taskStat = mutableMapOf<Task, TaskStat>()
 
-
     override fun generate(project: Project) {
-        val allTasks = project.allRequestedTasks.toSet()
+        renderedTasks.clear()
+        taskStat.clear()
 
+        val allTasks = project.allRequestedTasks.toSet()
         allTasks.forEach { task ->
             taskStat.putIfAbsent(
                 task,
@@ -31,6 +32,27 @@ open class TaskTreeTask @Inject constructor(
             )
         }
 
+        //https://docs.gradle.org/current/javadoc/org/gradle/api/execution/TaskExecutionGraph.html#getAllTasks--
+        // use sorted list
+        allTasks.forEach { task ->
+            val stat = taskStat[task]!!
+            val deps = project.taskGraph.getDeps(task)
+            stat.allDepsCount = deps.count() + deps.sumOf { dep ->
+                taskStat[dep]!!.allDepsCount
+            }
+        }
+        allTasks.reversed().forEach { task ->
+            val stat = taskStat[task]!!
+            project.taskGraph.getDeps(task).forEach {
+                val depStat = taskStat[it]!!
+                depStat.allDependedOnCount += 1 + stat.allDependedOnCount
+                if (depStat.task.project != stat.task.project) {
+                    depStat.allDependedOnOutsideProjectCount += 1 + stat.allDependedOnCount
+                }
+            }
+
+        }
+
         val topTasks = taskStat.values
             .filter { it.allDependedOnCount <= 0 }
             .map { it.task }
@@ -39,7 +61,7 @@ open class TaskTreeTask @Inject constructor(
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
 
-        renderedTasks.clear()
+
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
@@ -148,6 +170,10 @@ open class TaskTreeTask @Inject constructor(
         if (ext.printImportance) {
             withStyle(Description)
                 .text(" importance: ${taskStat.importance};")
+        }
+        if (ext.printImportanceOutSide) {
+            withStyle(Description)
+                .text(" importance outside: ${taskStat.importanceOutsideProject};")
         }
         if (ext.printComplexPrice) {
             withStyle(Description)
