@@ -35,16 +35,16 @@ open class TaskTreeTask @Inject constructor(
         //https://docs.gradle.org/current/javadoc/org/gradle/api/execution/TaskExecutionGraph.html#getAllTasks--
         // use sorted list
         allTasks.forEach { task ->
-            val stat = taskStat[task]!!
+            val stat = taskStat[task] ?: return@forEach
             val deps = project.taskGraph.getDeps(task)
             stat.allDepsCount = deps.count() + deps.sumOf { dep ->
-                taskStat[dep]!!.allDepsCount
+                taskStat[dep]?.allDepsCount ?: 0
             }
         }
         allTasks.reversed().forEach { task ->
-            val stat = taskStat[task]!!
+            val stat = taskStat[task] ?: return@forEach
             project.taskGraph.getDeps(task).forEach {
-                val depStat = taskStat[it]!!
+                val depStat = taskStat[it] ?: return@forEach
                 depStat.allDependedOnCount += 1 + stat.allDependedOnCount
                 if (depStat.task.project != stat.task.project) {
                     depStat.allDependedOnOutsideProjectCount += 1 + stat.allDependedOnCount
