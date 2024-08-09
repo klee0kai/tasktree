@@ -23,17 +23,11 @@ open class FlatListTask @Inject constructor(
         statHelper.collectFrom(project)
 
         val allTasksOrdered = project.allRequestedTasks
-        allTasksOrdered.forEach {
-            render(
-                task = it,
-                lastChild = true,
-                depth = 0,
-            )
-        }
+        allTasksOrdered.forEach { render(task = it) }
 
     }
 
-    private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
+    private fun render(task: Task) {
         graphRenderer?.visit({
             val taskStat = statHelper.taskStat[task] ?: return@visit
 
@@ -59,7 +53,7 @@ open class FlatListTask @Inject constructor(
                 withStyle(Description)
                     .text(" outputs: [ ${outputs.joinToString { it.path }} ] ")
 
-        }, lastChild)
+        }, /*last child */ true)
     }
 
     private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
