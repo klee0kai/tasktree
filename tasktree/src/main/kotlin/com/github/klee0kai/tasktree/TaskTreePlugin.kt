@@ -1,6 +1,7 @@
 package com.github.klee0kai.tasktree
 
 import com.github.klee0kai.tasktree.tasks.DiagonDagTask
+import com.github.klee0kai.tasktree.tasks.FlatListTask
 import com.github.klee0kai.tasktree.tasks.TaskTreeTask
 import com.github.klee0kai.tasktree.utils.allRequestedTasks
 import com.github.klee0kai.tasktree.utils.taskGraph
@@ -15,9 +16,10 @@ open class TaskTreePlugin : Plugin<Project> {
         val ext = extensions.create("tasktree", TaskTreeExtension::class.java)
         val taskTree = tasks.register("tasktree", TaskTreeTask::class.java, ext)
         val taskDag = tasks.register("diagonDAG", DiagonDagTask::class.java)
+        val flatlist = tasks.register("flatlist", FlatListTask::class.java, ext)
 
         taskGraph.whenReady {
-            val isTaskTreeRequested = hasTask(taskTree.get()) || hasTask(taskDag.get())
+            val isTaskTreeRequested = hasTask(taskTree.get()) || hasTask(taskDag.get()) || hasTask(flatlist.get())
             if (isTaskTreeRequested) {
                 allRequestedTasks.forEach {
                     it.enabled = false
