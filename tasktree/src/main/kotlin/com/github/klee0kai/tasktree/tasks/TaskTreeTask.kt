@@ -14,59 +14,28 @@ open class TaskTreeTask @Inject constructor(
 ) : BaseReportTask() {
 
     private val renderedTasks = mutableSetOf<Task>()
-    private val taskStat = mutableMapOf<Task, TaskStat>()
+    private val statHelper = TaskStatHelper()
 
     override fun generate(project: Project) {
         renderedTasks.clear()
-        taskStat.clear()
+        statHelper.collectFrom(project)
 
-        val allTasks = project.allRequestedTasks.toSet()
-        allTasks.forEach { task ->
-            taskStat.putIfAbsent(
-                task,
-                TaskStat(
-                    task = task,
-                    allTasks = allTasks,
-                    rootProject = project
-                )
-            )
-        }
-
-        //https://docs.gradle.org/current/javadoc/org/gradle/api/execution/TaskExecutionGraph.html#getAllTasks--
-        // use sorted list
-        allTasks.forEach { task ->
-            val stat = taskStat[task]!!
-            val deps = project.taskGraph.getDeps(task)
-            stat.allDepsCount = deps.count() + deps.sumOf { dep ->
-                taskStat[dep]!!.allDepsCount
+        val topTasks = project.allRequestedTasks
+            .filter { task ->
+                val taskStat = statHelper.taskStat[task] ?: return@filter false
+                taskStat.allDependedOnCount <= 0
             }
-        }
-        allTasks.reversed().forEach { task ->
-            val stat = taskStat[task]!!
-            project.taskGraph.getDeps(task).forEach {
-                val depStat = taskStat[it]!!
-                depStat.allDependedOnCount += 1 + stat.allDependedOnCount
-                if (depStat.task.project != stat.task.project) {
-                    depStat.allDependedOnOutsideProjectCount += 1 + stat.allDependedOnCount
-                }
-            }
+            .reversed()
 
-        }
-
-        val topTasks = taskStat.values
-            .filter { it.allDependedOnCount <= 0 }
-            .map { it.task }
         topTasks.forEach { render(it) }
 
         printMostExpensiveTasksIfNeed()
         printMostExpensiveModulesIfNeed()
-
-
     }
 
     private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
         graphRenderer?.visit({
-            val taskStat = taskStat[task] ?: return@visit
+            val taskStat = statHelper.taskStat[task] ?: return@visit
 
             printTaskShort(taskStat)
 
@@ -115,7 +84,7 @@ open class TaskTreeTask @Inject constructor(
 
     private fun printMostExpensiveTasksIfNeed() {
         if (ext.printMostExpensiveTasks) {
-            val allStat = taskStat.values
+            val allStat = statHelper.taskStat.values
                 .filter { it.complexPrice > 0 }
                 .sortedByDescending { it.complexPrice }
             renderer.textOutput
@@ -134,7 +103,7 @@ open class TaskTreeTask @Inject constructor(
 
     private fun printMostExpensiveModulesIfNeed() {
         if (ext.printMostExpensiveModules) {
-            val allStat = taskStat.values
+            val allStat = statHelper.taskStat.values
                 .groupBy { it.task.project }
                 .map { (pr, stat) -> pr to stat.sumOf { it.complexPriceOutsideProject.toDouble() } }
                 .sortedByDescending { (_, price) -> price }

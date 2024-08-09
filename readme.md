@@ -15,7 +15,7 @@ buildscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.8")
+        classpath("com.github.klee0kai:tasktree:0.0.9")
     }
 }
 ```
@@ -52,7 +52,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.8")
+        classpath("com.github.klee0kai:tasktree:0.0.9")
     }
 }
 
