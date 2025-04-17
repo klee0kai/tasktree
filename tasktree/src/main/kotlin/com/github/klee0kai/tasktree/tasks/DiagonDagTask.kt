@@ -22,6 +22,12 @@ open class DiagonDagTask @Inject constructor(
 
     private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
 
+    private val tasksStats by lazy {
+        TaskStatHelper.calcToTaskStats(tasksInfos.get())
+            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
+    }
+
+
     @Internal
     override fun getDescription(): String =
         "Draw tasktree graph use Diagon. More: https://github.com/ArthurSonzogni/Diagon"
@@ -29,8 +35,8 @@ open class DiagonDagTask @Inject constructor(
 
     @TaskAction
     fun generate() {
-        val depsCode = tasksInfos.get().joinToString("\n") { task ->
-            task.dependencies.joinToString("\n") { dep->
+        val depsCode = tasksStats.joinToString("\n") { task ->
+            task.dependencies.joinToString("\n") { dep ->
                 "${dep.taskName} -> ${task.taskName}"
             }
         }

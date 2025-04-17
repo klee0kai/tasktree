@@ -31,7 +31,7 @@ tasks.create("sub_second_task") {
 }
 
 tasktree {
-    printClassName = true
+    printClassName = false
     printPrice = true
     printImportance = true
     printComplexPrice = true

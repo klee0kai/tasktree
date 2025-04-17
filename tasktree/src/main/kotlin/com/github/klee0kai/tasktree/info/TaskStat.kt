@@ -41,6 +41,20 @@ class TaskStat(
             return field
         }
 
+    val allDependencies: Sequence<TaskStat> = sequence {
+        yieldAll(dependencies)
+        dependencies.forEach {
+            yieldAll(it.allDependencies)
+        }
+    }
+
+    val allDependedOnTasks: Sequence<TaskStat> = sequence {
+        yieldAll(dependedOnTasks)
+        dependedOnTasks.forEach {
+            yieldAll(it.allDependedOnTasks)
+        }
+    }
+
 
     val price get() = allDepsCount
     val importance get() = allDependedOnCount

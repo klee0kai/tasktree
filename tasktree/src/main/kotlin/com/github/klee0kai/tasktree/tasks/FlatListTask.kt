@@ -15,11 +15,12 @@ open class FlatListTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
-    private val renderedTasks = mutableSetOf<TaskStat>()
-
     private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
 
-    private val tasksStats by lazy { TaskStatHelper.calcToTaskStats(tasksInfos.get()) }
+    private val tasksStats by lazy {
+        TaskStatHelper.calcToTaskStats(tasksInfos.get())
+            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
+    }
 
     @TaskAction
     fun generate() {

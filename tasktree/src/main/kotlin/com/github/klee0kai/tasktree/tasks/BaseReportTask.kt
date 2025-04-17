@@ -16,7 +16,9 @@ abstract class BaseReportTask : ConventionReportTask() {
     protected val projectDetails = Cached.of { ProjectDetails.of(project) }
 
     @get:Internal
-    protected val allRequestedTasks = Cached.of { project.allRequestedTasks.map { it.name } }
+    protected val allRequestedTasksIds = Cached.of {
+        project.allRequestedTasks.map { System.identityHashCode(it) }.toSet()
+    }
 
     @Internal
     protected val renderer = TextReportRenderer()

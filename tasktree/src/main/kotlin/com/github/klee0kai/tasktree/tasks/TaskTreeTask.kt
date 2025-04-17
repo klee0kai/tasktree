@@ -1,7 +1,7 @@
 package com.github.klee0kai.tasktree.tasks
 
-import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.TaskTreeExtension
+import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.info.TaskStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
 import org.gradle.api.tasks.TaskAction
@@ -18,7 +18,10 @@ open class TaskTreeTask @Inject constructor(
 
     private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
 
-    private val tasksStats by lazy { TaskStatHelper.calcToTaskStats(tasksInfos.get()) }
+    private val tasksStats by lazy {
+        TaskStatHelper.calcToTaskStats(tasksInfos.get())
+            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
+    }
 
     @TaskAction
     fun generate() {
@@ -27,7 +30,9 @@ open class TaskTreeTask @Inject constructor(
             tasksStats.groupBy { it.projectDetails }.entries,
             { it.key }
         ) { projectTasks ->
-            val topTasks = projectTasks.value.filter { task -> task.allDependedOnCount <= 0 }.reversed()
+            val topTasks = projectTasks.value
+                .filter { task -> task.allDependedOnTasks.none { allRequestedTasksIds.get().contains(it.id) } }
+                .sortedBy { it.allDependedOnCount }
             topTasks.forEach { render(it) }
 
             printMostExpensiveTasksIfNeed()

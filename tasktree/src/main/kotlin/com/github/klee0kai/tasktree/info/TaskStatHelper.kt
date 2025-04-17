@@ -48,4 +48,15 @@ object TaskStatHelper {
 
         return taskStats.values.toList()
     }
+
+    fun filterByRequestedTasks(
+        tasksStats: List<TaskStat>,
+        allRequestedTasksIds: Set<Int>,
+    ): List<TaskStat> {
+        if (allRequestedTasksIds.isEmpty()) return tasksStats
+        return tasksStats.filter {
+            it.id in allRequestedTasksIds
+        }
+    }
+
 }
