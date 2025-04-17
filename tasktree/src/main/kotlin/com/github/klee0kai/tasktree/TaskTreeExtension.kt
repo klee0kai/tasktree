@@ -3,16 +3,6 @@ package com.github.klee0kai.tasktree
 open class TaskTreeExtension {
 
     /**
-     * Print task inputs
-     */
-    var inputs: Boolean = false
-
-    /**
-     * Print task outputs
-     */
-    var outputs: Boolean = false
-
-    /**
      * Graph max depth
      */
     var maxDepth: Int = -1

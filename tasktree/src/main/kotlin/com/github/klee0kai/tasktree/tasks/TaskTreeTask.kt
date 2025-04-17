@@ -1,67 +1,54 @@
 package com.github.klee0kai.tasktree.tasks
 
-import com.github.klee0kai.tasktree.TaskStat
+import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.TaskTreeExtension
-import com.github.klee0kai.tasktree.utils.*
-import org.gradle.api.Project
-import org.gradle.api.Task
+import com.github.klee0kai.tasktree.info.TaskStatHelper
+import com.github.klee0kai.tasktree.utils.formatString
+import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
+import org.gradle.internal.serialization.Cached
 import javax.inject.Inject
 
 open class TaskTreeTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
-    private val renderedTasks = mutableSetOf<Task>()
-    private val statHelper = TaskStatHelper()
+    private val renderedTasks = mutableSetOf<TaskStat>()
 
-    override fun generate(project: Project) {
+    private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
+
+    private val tasksStats by lazy { TaskStatHelper.calcToTaskStats(tasksInfos.get()) }
+
+    @TaskAction
+    fun generate() {
         renderedTasks.clear()
-        statHelper.collectFrom(project)
+        reportGenerator().generateReport(
+            tasksStats.groupBy { it.projectDetails }.entries,
+            { it.key }
+        ) { projectTasks ->
+            val topTasks = projectTasks.value.filter { task -> task.allDependedOnCount <= 0 }.reversed()
+            topTasks.forEach { render(it) }
 
-        val topTasks = project.allRequestedTasks
-            .filter { task ->
-                val taskStat = statHelper.taskStat[task] ?: return@filter false
-                taskStat.allDependedOnCount <= 0
-            }
-            .reversed()
+            printMostExpensiveTasksIfNeed()
+            printMostExpensiveModulesIfNeed()
+        }
 
-        topTasks.forEach { render(it) }
-
-        printMostExpensiveTasksIfNeed()
-        printMostExpensiveModulesIfNeed()
     }
 
-    private fun render(task: Task, lastChild: Boolean = true, depth: Int = 0) {
+    private fun render(taskStat: TaskStat, lastChild: Boolean = true, depth: Int = 0) {
         graphRenderer?.visit({
-            val taskStat = statHelper.taskStat[task] ?: return@visit
 
             printTaskShort(taskStat)
 
             if (ext.printClassName) {
                 withStyle(Description)
-                    .text(" class: ${task.simpleClassName};")
+                    .text(" class: ${taskStat.className};")
             }
-
-            if (task.isIncludedBuild) {
-                withStyle(Description)
-                    .text(" (included build '${task.project.gradle.rootProject.name}')")
-            }
-
-            val inputs by lazy { task.inputs.files.files }
-            if (ext.inputs && inputs.isNotEmpty())
-                withStyle(Description)
-                    .text(" inputs: [ ${inputs.joinToString { it.path }} ] ")
-
-            val outputs by lazy { task.outputs.files.files }
-            if (ext.outputs && outputs.isNotEmpty())
-                withStyle(Description)
-                    .text(" outputs: [ ${outputs.joinToString { it.path }} ] ")
 
         }, lastChild)
 
-        if ((!ext.printDoubles && task in renderedTasks) || ext.maxDepth in 0..depth) {
+        if ((!ext.printDoubles && taskStat in renderedTasks) || ext.maxDepth in 0..depth) {
             graphRenderer?.startChildren()
             graphRenderer?.visit({
                 withStyle(Normal)
@@ -70,12 +57,11 @@ open class TaskTreeTask @Inject constructor(
             graphRenderer?.completeChildren()
             return
         }
-        renderedTasks.add(task)
+        renderedTasks.add(taskStat)
 
         graphRenderer?.startChildren()
-        val deps = project.taskGraph.getDeps(task)
-        val depsSize = deps.size
-        deps.forEachIndexed { indx, it ->
+        val depsSize = taskStat.dependencies.size
+        taskStat.dependencies.forEachIndexed { indx, it ->
             val lastChild = indx >= depsSize - 1
             render(it, lastChild = lastChild, depth = depth + 1)
         }
@@ -84,7 +70,7 @@ open class TaskTreeTask @Inject constructor(
 
     private fun printMostExpensiveTasksIfNeed() {
         if (ext.printMostExpensiveTasks) {
-            val allStat = statHelper.taskStat.values
+            val allStat = tasksStats
                 .filter { it.complexPrice > 0 }
                 .sortedByDescending { it.complexPrice }
             renderer.textOutput
@@ -103,8 +89,8 @@ open class TaskTreeTask @Inject constructor(
 
     private fun printMostExpensiveModulesIfNeed() {
         if (ext.printMostExpensiveModules) {
-            val allStat = statHelper.taskStat.values
-                .groupBy { it.task.project }
+            val allStat = tasksStats
+                .groupBy { it.projectDetails }
                 .map { (pr, stat) -> pr to stat.sumOf { it.complexPriceOutsideProject.toDouble() } }
                 .sortedByDescending { (_, price) -> price }
 
@@ -116,7 +102,7 @@ open class TaskTreeTask @Inject constructor(
             allStat.forEach { (proj, price) ->
                 renderer.textOutput.apply {
                     withStyle(Identifier)
-                        .text(proj.fullName)
+                        .text(proj?.displayName)
 
                     withStyle(Description)
                         .text(" complexPrice: ${price.formatString()}")
@@ -130,7 +116,7 @@ open class TaskTreeTask @Inject constructor(
 
     private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
         withStyle(Identifier)
-            .text(taskStat.task.fullName)
+            .text(taskStat.fullName)
 
         if (ext.printPrice) {
             withStyle(Description)
@@ -149,8 +135,6 @@ open class TaskTreeTask @Inject constructor(
                 .text(" complexPrice: ${taskStat.complexPrice.formatString()};")
         }
     }
-
-    private val Task.isIncludedBuild get() = this@TaskTreeTask.project.gradle != project.gradle
 
 
 }

@@ -31,14 +31,15 @@ tasks.create("sub_second_task") {
 }
 
 tasktree {
-    inputs = false
-    outputs = false
-    printClassName = false
+    printClassName = true
     printPrice = true
     printImportance = true
     printComplexPrice = true
     printDoubles = true
     printImportanceOutSide = true
+
+//    printMostExpensiveTasks = true
+//    printMostExpensiveModules = true
 }
 
 

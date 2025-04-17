@@ -33,10 +33,3 @@ val Project.parents
         runCatching { it.parent }.getOrNull()
     }.take(RECURSIVE_DETECT)
 
-fun DefaultTaskExecutionGraph.getDeps(task: Task): Set<Task> =
-    try {
-        getDependencies(task)
-    } catch (ignore: Exception) {
-        //ignore non available info
-        setOf()
-    }

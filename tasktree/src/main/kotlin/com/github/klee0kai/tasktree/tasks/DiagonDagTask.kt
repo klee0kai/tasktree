@@ -1,14 +1,12 @@
 package com.github.klee0kai.tasktree.tasks
 
-import com.github.klee0kai.tasktree.utils.allRequestedTasks
-import com.github.klee0kai.tasktree.utils.fullName
-import com.github.klee0kai.tasktree.utils.getDeps
-import com.github.klee0kai.tasktree.utils.taskGraph
+import com.github.klee0kai.tasktree.info.TaskStatHelper
 import org.apache.tools.ant.util.TeeOutputStream
-import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.serialization.Cached
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
@@ -22,18 +20,18 @@ open class DiagonDagTask @Inject constructor(
     val execAction: ExecActionFactory,
 ) : BaseReportTask() {
 
+    private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
 
     @Internal
     override fun getDescription(): String =
         "Draw tasktree graph use Diagon. More: https://github.com/ArthurSonzogni/Diagon"
 
 
-    override fun generate(project: Project) {
-        val allTasks = project.allRequestedTasks.toSet()
-
-        val depsCode = allTasks.joinToString("\n") { task ->
-            project.taskGraph.getDeps(task).joinToString("\n") { dep ->
-                "${dep.fullName} ->  ${task.fullName}"
+    @TaskAction
+    fun generate() {
+        val depsCode = tasksInfos.get().joinToString("\n") { task ->
+            task.dependencies.joinToString("\n") { dep->
+                "${dep.taskName} -> ${task.taskName}"
             }
         }
 

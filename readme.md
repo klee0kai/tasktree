@@ -15,8 +15,6 @@ plugins {
 }
 
 tasktree {
-    inputs = false
-    outputs = false
     printClassName = true
     maxDepth = 1
 }
@@ -48,8 +46,6 @@ rootProject{
 
     extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
         ?.apply {
-            inputs = false
-            outputs = false
             maxDepth = 1
             printClassName = true
             printComplexPrice = true
