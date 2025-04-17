@@ -31,7 +31,6 @@ tasks.create("sub_second_task") {
 }
 
 tasktree {
-
     inputs = false
     outputs = false
     printClassName = false
@@ -40,8 +39,6 @@ tasktree {
     printComplexPrice = true
     printDoubles = true
     printImportanceOutSide = true
-
-
 }
 
 
