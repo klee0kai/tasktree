@@ -1,6 +1,6 @@
 plugins {
-    id("java")
-    id("tasktree")
+    `kotlin-dsl`
+    alias(libs.plugins.tasktree)
 }
 
 val firstTask = tasks.create("simple_first_task") {

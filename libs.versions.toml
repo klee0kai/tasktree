@@ -1,0 +1,14 @@
+[versions]
+
+tasktree = "0.0.9"
+
+[libraries]
+
+[bundles]
+
+
+[plugins]
+
+publish-plugin = { id = "com.gradle.plugin-publish", version = "1.1.0" }
+tasktree = { id = "com.github.klee0kai.tasktree", version.ref = "tasktree" }
+

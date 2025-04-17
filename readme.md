@@ -7,24 +7,11 @@ Print gradle task dependencies graph
 
 ## Usage
 
-Configure classpath in project's `build.gradle`:
-
-```kotlin
-buildscript {
-    repositories {
-        maven(url = "https://jitpack.io")
-    }
-    dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.9")
-    }
-}
-```
-
 Apply plugin in your module's `build.gradle`:
 
 ```kotlin
 plugins {
-    id("tasktree")
+    id("com.github.klee0kai.tasktree") version "0.0.9"
 }
 
 tasktree {
@@ -52,7 +39,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.9")
+        classpath("com.github.klee0kai.tasktree:com.github.klee0kai.tasktree.gradle.plugin:0.0.9_lc3")
     }
 }
 
@@ -61,6 +48,10 @@ rootProject{
 
     extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
         ?.apply {
+            inputs = false
+            outputs = false
+            maxDepth = 1
+            printClassName = true
             printComplexPrice = true
         }
 }
