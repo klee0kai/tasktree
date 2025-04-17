@@ -24,7 +24,7 @@ abstract class BaseReportTask : ConventionReportTask() {
     protected val renderer = TextReportRenderer()
 
     @get:Internal
-    protected val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput ?: return@lazy null) }
+    protected val graphRenderer: GraphRenderer? by lazy { GraphRenderer(renderer.textOutput) }
 
     override fun getRenderer(): ReportRenderer = renderer
 

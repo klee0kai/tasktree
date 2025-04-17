@@ -21,9 +21,11 @@ object TaskStatHelper {
         }.associateBy { task -> task.id }
 
         project.tasks.forEach { task ->
-            task.taskDependencies.getDependencies(task).forEach { dependsOn ->
-                val taskStat = tasksInfos[System.identityHashCode(dependsOn)] ?: return@forEach
-                tasksInfos[System.identityHashCode(task)]?.dependencies?.add(taskStat)
+            runCatching {
+                task.taskDependencies.getDependencies(task).forEach { dependsOn ->
+                    val taskStat = tasksInfos[System.identityHashCode(dependsOn)] ?: return@forEach
+                    tasksInfos[System.identityHashCode(task)]?.dependencies?.add(taskStat)
+                }
             }
         }
         return tasksInfos.values.toList()

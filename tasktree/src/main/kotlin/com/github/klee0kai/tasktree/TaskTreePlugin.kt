@@ -10,7 +10,10 @@ import org.gradle.api.Project
 
 open class TaskTreePlugin : Plugin<Project> {
 
-    override fun apply(project: Project) = project.applyOnProject()
+    override fun apply(project: Project) {
+        project.applyOnProject()
+        project.childProjects.forEach { _, project -> project.applyOnProject() }
+    }
 
     private fun Project.applyOnProject() {
         val ext = extensions.create("tasktree", TaskTreeExtension::class.java)
@@ -28,6 +31,7 @@ open class TaskTreePlugin : Plugin<Project> {
                 }
             }
         }
+
     }
 
 }
