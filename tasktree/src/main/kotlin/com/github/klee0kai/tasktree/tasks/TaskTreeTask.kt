@@ -41,7 +41,7 @@ open class TaskTreeTask @Inject constructor(
                         task.allDependedOnCount <= 0L
                     }
                 }
-                .sortedBy { it.allDependedOnCount }
+                .sortedByDescending { it.depth }
             topTasks.forEach { graphRenderer.render(it) }
 
             renderer.printMostExpensiveTasksIfNeed()
@@ -86,8 +86,8 @@ open class TaskTreeTask @Inject constructor(
     private fun TextReportRenderer.printMostExpensiveTasksIfNeed() {
         if (ext.printMostExpensive) {
             val allStat = tasksStats
-                .filter { it.relativePrice > 0 }
-                .sortedByDescending { it.relativePrice }
+                .filter { it.depth > 0 }
+                .sortedByDescending { it.depth }
             textOutput
                 .println()
                 .withStyle(Header)
@@ -110,6 +110,8 @@ open class TaskTreeTask @Inject constructor(
         if (ext.printPrice) {
             withStyle(Description)
                 .text(" price: ${taskStat.price};")
+            withStyle(Description)
+                .text(" depth: ${taskStat.depth};")
         }
         if (ext.printImportance) {
             withStyle(Description)
@@ -118,6 +120,9 @@ open class TaskTreeTask @Inject constructor(
         if (ext.printRelativePrice) {
             withStyle(Description)
                 .text(" relativePrice: ${taskStat.relativePrice.formatString()};")
+
+            withStyle(Description)
+                .text(" relativeDepth: ${taskStat.relativeDepth.formatString()};")
         }
     }
 

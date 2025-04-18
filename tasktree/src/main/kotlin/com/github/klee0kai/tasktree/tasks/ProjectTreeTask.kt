@@ -32,7 +32,7 @@ open class ProjectTreeTask @Inject constructor(
             val graphRenderer = GraphRenderer(renderer.textOutput)
             val topProjects = projectsStats
                 .filter { project -> project.allDependedOnCount <= 0L }
-                .sortedBy { it.allDependedOnCount }
+                .sortedByDescending { it.depth }
             topProjects.forEach { graphRenderer.render(it) }
 
             renderer.printMostExpensiveProjectsIfNeed()
@@ -80,8 +80,8 @@ open class ProjectTreeTask @Inject constructor(
     private fun TextReportRenderer.printMostExpensiveProjectsIfNeed() {
         if (ext.printMostExpensive) {
             val allStat = projectsStats
-                .filter { it.relativePrice > 0 }
-                .sortedByDescending { it.relativePrice }
+                .filter { it.depth > 0 }
+                .sortedByDescending { it.depth }
             textOutput
                 .println()
                 .withStyle(Header)
@@ -103,6 +103,9 @@ open class ProjectTreeTask @Inject constructor(
         if (ext.printPrice) {
             withStyle(Description)
                 .text(" price: ${projectInfo.price};")
+
+            withStyle(Description)
+                .text(" depth: ${projectInfo.depth};")
         }
         if (ext.printImportance) {
             withStyle(Description)
@@ -111,6 +114,9 @@ open class ProjectTreeTask @Inject constructor(
         if (ext.printRelativePrice) {
             withStyle(Description)
                 .text(" relativePrice: ${projectInfo.relativePrice.formatString()};")
+
+            withStyle(Description)
+                .text(" relativeDepth: ${projectInfo.relativeDepth.formatString()};")
         }
     }
 

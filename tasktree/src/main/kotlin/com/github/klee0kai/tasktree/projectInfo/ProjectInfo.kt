@@ -13,6 +13,7 @@ class ProjectInfo(
 ) {
     var allProjectsCount: Int = 0
     var maxPrice: Int = 0
+    var maxDepth: Int = 0
 
     var allDepsCount: Int = 0
         private set
@@ -55,11 +56,31 @@ class ProjectInfo(
         }
     }
 
+    var depth: Int = 0
+        private set
+        get() {
+            if (field != 0) return field
+            var maxDepth = 1
+            val checked = mutableSetOf<String>()
+            val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
+            while (deps.isNotEmpty()) {
+                val dep = deps.pollFirst()
+                if (checked.contains(dep.first.path)) continue
+                if (dep.second > maxDepth) maxDepth = dep.second
+                checked.add(dep.first.path)
+                deps.addAll(dep.first.dependencies.map { it to dep.second + 1 })
+            }
+            field = maxDepth
+            return field
+        }
+
 
     val price get() = allDepsCount + 1
     val importance get() = allDependedOnCount
 
     val relativePrice get() = price.toFloat() / maxPrice
+
+    val relativeDepth get() = depth.toFloat() / maxDepth
 
 }
 

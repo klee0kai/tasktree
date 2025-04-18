@@ -53,8 +53,10 @@ object TaskStatHelper {
         }
 
         val maxPrice = taskStats.values.maxOfOrNull { it.price } ?: 0
+        val maxDepth = taskStats.values.maxOfOrNull { it.depth } ?: 0
         taskStats.values.forEach { task ->
             task.maxPrice = maxPrice
+            task.maxDepth = maxDepth
         }
 
         return taskStats.values.toList()

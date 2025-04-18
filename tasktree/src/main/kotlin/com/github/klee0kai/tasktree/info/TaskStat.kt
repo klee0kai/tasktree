@@ -17,6 +17,7 @@ class TaskStat(
 
     var allTasksCount: Int = 0
     var maxPrice: Int = 0
+    var maxDepth: Int = 0
 
     val fullName: String = "${projectName}:${taskName}"
 
@@ -36,12 +37,21 @@ class TaskStat(
             return field
         }
 
-
-    var allDependedOnOutsideProjectCount: Int = 0
+    var depth: Int = 0
         private set
         get() {
             if (field != 0) return field
-            field = allDependedOnTasks.count { it.projectDetails != projectDetails }
+            var maxDepth = 1
+            val checked = mutableSetOf<Int>()
+            val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
+            while (deps.isNotEmpty()) {
+                val dep = deps.pollFirst()
+                if (checked.contains(dep.first.id)) continue
+                if (dep.second > maxDepth) maxDepth = dep.second
+                checked.add(dep.first.id)
+                deps.addAll(dep.first.dependencies.map { it to dep.second + 1 })
+            }
+            field = maxDepth
             return field
         }
 
@@ -74,6 +84,8 @@ class TaskStat(
     val importance get() = allDependedOnCount
 
     val relativePrice get() = price.toFloat() / maxPrice.toFloat()
+
+    val relativeDepth get() = depth.toFloat() / maxDepth.toFloat()
 
 }
 
