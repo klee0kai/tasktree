@@ -1,6 +1,6 @@
 package com.github.klee0kai.tasktree
 
-import com.github.klee0kai.tasktree.tasks.DiagonDagTask
+import com.github.klee0kai.tasktree.tasks.TaskGrapthTask
 import com.github.klee0kai.tasktree.tasks.FlatListTask
 import com.github.klee0kai.tasktree.tasks.ProjectTreeTask
 import com.github.klee0kai.tasktree.tasks.TaskTreeTask
@@ -18,15 +18,15 @@ open class TaskTreePlugin : Plugin<Project> {
     }
 
     private fun Project.applyProjectReportOnProject(ext: TaskTreeExtension) {
-        val taskTree = tasks.register("projecttree", ProjectTreeTask::class.java, ext)
+        tasks.register("projectTree", ProjectTreeTask::class.java, ext)
     }
 
 
     private fun Project.applyTaskReportOnProject(ext: TaskTreeExtension) {
         afterEvaluate {
-            val taskTree = tasks.register("tasktree", TaskTreeTask::class.java, ext)
-            val taskDag = tasks.register("diagonDAG", DiagonDagTask::class.java)
-            val flatlist = tasks.register("flatlist", FlatListTask::class.java, ext)
+            val taskTree = tasks.register("taskTree", TaskTreeTask::class.java, ext)
+            val taskDag = tasks.register("taskGraph", TaskGrapthTask::class.java)
+            val flatlist = tasks.register("flatList", FlatListTask::class.java, ext)
 
             taskGraph.whenReady {
                 val isTaskTreeRequested = hasTask(taskTree.get()) || hasTask(taskDag.get()) || hasTask(flatlist.get())

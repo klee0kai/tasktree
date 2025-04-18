@@ -4,8 +4,11 @@ import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.info.TaskStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
+import org.gradle.api.tasks.options.Option
 import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
@@ -24,6 +27,16 @@ open class TaskTreeTask @Inject constructor(
         TaskStatHelper.calcToTaskStats(tasksInfos.get())
             .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
     }
+
+    @Input
+    @Optional
+    @set:Option(option = "verifyDepth", description = "Verify tasks depth")
+    protected var verifyDepth: String? = null
+
+    @Input
+    @Optional
+    @set:Option(option = "verifyPrice", description = "Verify tasks price")
+    protected var verifyPrice: String? = null
 
     @TaskAction
     fun generate() {
@@ -45,8 +58,8 @@ open class TaskTreeTask @Inject constructor(
             topTasks.forEach { graphRenderer.render(it) }
 
             renderer.printMostExpensiveTasksIfNeed()
+            verifyIfNeed()
         }
-
     }
 
     private fun GraphRenderer.render(taskStat: TaskStat, lastChild: Boolean = true, depth: Int = 0) {
@@ -123,6 +136,21 @@ open class TaskTreeTask @Inject constructor(
 
             withStyle(Description)
                 .text(" relativeDepth: ${taskStat.relativeDepth.formatString()};")
+        }
+    }
+
+
+    private fun verifyIfNeed() {
+        val verifyDepth = verifyDepth?.toInt() ?: return
+        var heavyTasks = tasksStats.filter { it.depth > verifyDepth }
+        if (heavyTasks.isNotEmpty()) {
+            throw IllegalStateException("Heavy tasks: ${heavyTasks.joinToString("\n") { "'${it.fullName}' depth : ${it.depth}" }}")
+        }
+
+        val verifyPrice = verifyPrice?.toInt() ?: return
+        heavyTasks = tasksStats.filter { it.price > verifyPrice }
+        if (heavyTasks.isNotEmpty()) {
+            throw IllegalStateException("Heavy tasks: ${heavyTasks.joinToString("\n") { "'${it.fullName}' price: ${it.price}" }}")
         }
     }
 

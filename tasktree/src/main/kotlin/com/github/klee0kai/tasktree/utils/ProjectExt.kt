@@ -1,6 +1,6 @@
 package com.github.klee0kai.tasktree.utils
 
-import com.github.klee0kai.tasktree.tasks.DiagonDagTask
+import com.github.klee0kai.tasktree.tasks.TaskGrapthTask
 import com.github.klee0kai.tasktree.tasks.FlatListTask
 import com.github.klee0kai.tasktree.tasks.TaskTreeTask
 import org.gradle.api.Project
@@ -26,7 +26,7 @@ val Project.taskGraph get() = gradle.taskGraph as DefaultTaskExecutionGraph
 
 val Project.allRequestedTasks
     get() = taskGraph.allTasks
-        .filter { it !is TaskTreeTask && it !is DiagonDagTask && it !is FlatListTask }
+        .filter { it !is TaskTreeTask && it !is TaskGrapthTask && it !is FlatListTask }
 
 val Project.parents
     get() = generateSequence(this) {

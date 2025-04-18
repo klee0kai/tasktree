@@ -23,7 +23,13 @@ tasktree {
 Report your build graph
 
 ```bash
-./gradlew tasktree assemble
+./gradlew taskTree assemble
+```
+
+Verify project's module dependency depth
+
+```bash 
+./gradlew projectTree  --verifyDepth=2
 ```
 
 ## Configure Init Script

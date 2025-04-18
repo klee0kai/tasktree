@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
-open class DiagonDagTask @Inject constructor(
+open class TaskGrapthTask @Inject constructor(
     @Input
     val objectFactory: ObjectFactory,
     @Input

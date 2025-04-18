@@ -11,6 +11,7 @@
       <option name="taskNames">
         <list>
           <option value="projecttree" />
+          <option value="--verifyDepth=1" />
         </list>
       </option>
       <option name="vmOptions" />

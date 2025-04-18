@@ -4,8 +4,11 @@ import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.projectInfo.ProjectInfo
 import com.github.klee0kai.tasktree.projectInfo.ProjectStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
+import org.gradle.api.tasks.options.Option
 import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
@@ -22,6 +25,16 @@ open class ProjectTreeTask @Inject constructor(
 
     private val projectsStats by lazy { ProjectStatHelper.calcToProjectStats(projectsInfos.get()) }
 
+    @Input
+    @Optional
+    @set:Option(option = "verifyDepth", description = "Verify project's module depth")
+    protected var verifyDepth: String? = null
+
+    @Input
+    @Optional
+    @set:Option(option = "verifyPrice", description = "Verify project's module price")
+    protected var verifyPrice: String? = null
+
     @TaskAction
     fun generate() {
         renderedProjects.clear()
@@ -36,6 +49,7 @@ open class ProjectTreeTask @Inject constructor(
             topProjects.forEach { graphRenderer.render(it) }
 
             renderer.printMostExpensiveProjectsIfNeed()
+            verifyIfNeed()
         }
 
     }
@@ -120,6 +134,20 @@ open class ProjectTreeTask @Inject constructor(
         }
     }
 
+
+    private fun verifyIfNeed() {
+        val verifyDepth = verifyDepth?.toInt() ?: return
+        var heavyProjects = projectsStats.filter { it.depth > verifyDepth }
+        if (heavyProjects.isNotEmpty()) {
+            throw IllegalStateException("Heavy projects: ${heavyProjects.joinToString("\n") { "'${it.fullName}' depth: ${it.depth}" }}")
+        }
+
+        val verifyPrice = verifyPrice?.toInt() ?: return
+        heavyProjects = projectsStats.filter { it.price > verifyPrice }
+        if (heavyProjects.isNotEmpty()) {
+            throw IllegalStateException("Heavy projects: ${heavyProjects.joinToString("\n") { "'${it.fullName}' price : ${it.price}" }}")
+        }
+    }
 
 }
 

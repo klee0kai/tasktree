@@ -49,7 +49,7 @@ class TaskStat(
                 if (checked.contains(dep.first.id)) continue
                 if (dep.second > maxDepth) maxDepth = dep.second
                 checked.add(dep.first.id)
-                deps.addAll(dep.first.dependencies.map { it to dep.second + 1 })
+                deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
             }
             field = maxDepth
             return field
