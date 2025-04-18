@@ -5,6 +5,7 @@ import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.info.TaskStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Description
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier
@@ -25,13 +26,15 @@ open class FlatListTask @Inject constructor(
     @TaskAction
     fun generate() {
         reportGenerator().generateReport(
-            tasksStats.groupBy { it.projectDetails }.entries,
-            { it.key }
+            listOf(projectDetails.get()),
+            { it }
         ) { projectTasks ->
-            projectTasks.value
+            val graphRenderer = GraphRenderer(renderer.textOutput)
+
+            tasksStats
                 .sortedBy { it.allDepsCount }
                 .forEach { taskStat ->
-                    graphRenderer?.visit({
+                    graphRenderer.visit({
                         printTaskShort(taskStat)
 
                         if (ext.printClassName) {

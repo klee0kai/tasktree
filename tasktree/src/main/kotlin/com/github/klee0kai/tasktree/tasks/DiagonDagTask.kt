@@ -37,7 +37,7 @@ open class DiagonDagTask @Inject constructor(
     fun generate() {
         val depsCode = tasksStats.joinToString("\n") { task ->
             task.dependencies.joinToString("\n") { dep ->
-                "${dep.taskName} -> ${task.taskName}"
+                "${dep.fullName} -> ${task.fullName}"
             }
         }
 

@@ -5,6 +5,8 @@ import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.info.TaskStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import org.gradle.internal.serialization.Cached
@@ -27,10 +29,11 @@ open class TaskTreeTask @Inject constructor(
     fun generate() {
         renderedTasks.clear()
         reportGenerator().generateReport(
-            tasksStats.groupBy { it.projectDetails }.entries,
-            { it.key }
+            listOf(projectDetails.get()),
+            { it }
         ) { projectTasks ->
-            val topTasks = projectTasks.value
+            val graphRenderer = GraphRenderer(renderer.textOutput)
+            val topTasks = tasksStats
                 .filter { task ->
                     if (allRequestedTasksIds.get().isNotEmpty()) {
                         task.dependedOnTasks.none { allRequestedTasksIds.get().contains(it.id) }
@@ -39,16 +42,16 @@ open class TaskTreeTask @Inject constructor(
                     }
                 }
                 .sortedBy { it.allDependedOnCount }
-            topTasks.forEach { render(it) }
+            topTasks.forEach { graphRenderer.render(it) }
 
-            printMostExpensiveTasksIfNeed()
-            printMostExpensiveModulesIfNeed()
+            renderer.printMostExpensiveTasksIfNeed()
+            renderer.printMostExpensiveModulesIfNeed()
         }
 
     }
 
-    private fun render(taskStat: TaskStat, lastChild: Boolean = true, depth: Int = 0) {
-        graphRenderer?.visit({
+    private fun GraphRenderer.render(taskStat: TaskStat, lastChild: Boolean = true, depth: Int = 0) {
+        visit({
 
             printTaskShort(taskStat)
 
@@ -60,31 +63,31 @@ open class TaskTreeTask @Inject constructor(
         }, lastChild)
 
         if ((!ext.printDoubles && taskStat in renderedTasks) || ext.maxDepth in 0..depth) {
-            graphRenderer?.startChildren()
-            graphRenderer?.visit({
+            startChildren()
+            visit({
                 withStyle(Normal)
                     .text("***")
             }, lastChild)
-            graphRenderer?.completeChildren()
+            completeChildren()
             return
         }
         renderedTasks.add(taskStat)
 
-        graphRenderer?.startChildren()
+        startChildren()
         val depsSize = taskStat.dependencies.size
         taskStat.dependencies.forEachIndexed { indx, it ->
             val lastChild = indx >= depsSize - 1
             render(it, lastChild = lastChild, depth = depth + 1)
         }
-        graphRenderer?.completeChildren()
+        completeChildren()
     }
 
-    private fun printMostExpensiveTasksIfNeed() {
+    private fun TextReportRenderer.printMostExpensiveTasksIfNeed() {
         if (ext.printMostExpensiveTasks) {
             val allStat = tasksStats
                 .filter { it.complexPrice > 0 }
                 .sortedByDescending { it.complexPrice }
-            renderer.textOutput
+            textOutput
                 .println()
                 .withStyle(Header)
                 .println("Most expensive tasks:")
@@ -94,24 +97,24 @@ open class TaskTreeTask @Inject constructor(
                     .printTaskShort(it)
                     .println()
             }
-            renderer.textOutput.println()
+            textOutput.println()
         }
     }
 
-    private fun printMostExpensiveModulesIfNeed() {
+    private fun TextReportRenderer.printMostExpensiveModulesIfNeed() {
         if (ext.printMostExpensiveModules) {
             val allStat = tasksStats
                 .groupBy { it.projectDetails }
                 .map { (pr, stat) -> pr to stat.sumOf { it.complexPriceOutsideProject.toDouble() } }
                 .sortedByDescending { (_, price) -> price }
 
-            renderer.textOutput
+            textOutput
                 .println()
                 .withStyle(Header)
                 .println("Most expensive modules:")
 
             allStat.forEach { (proj, price) ->
-                renderer.textOutput.apply {
+                textOutput.apply {
                     withStyle(Identifier)
                         .text(proj?.displayName)
 
@@ -121,7 +124,7 @@ open class TaskTreeTask @Inject constructor(
                     println()
                 }
             }
-            renderer.textOutput.println()
+            textOutput.println()
         }
     }
 
