@@ -1,27 +1,16 @@
-buildscript {
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.21")
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.7.21")
-    }
-}
-
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-    id("com.gradle.plugin-publish") version "1.1.0"
+    alias(libs.plugins.publish.plugin)
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
+group = libs.plugins.tasktree.get().pluginId
 
 gradlePlugin {
     plugins.register("tasktree") {
-        id = "tasktree"
-        group = "com.github.klee0kai"
-        version = "0.0.9"
+        id = libs.plugins.tasktree.get().pluginId
+        group = libs.plugins.tasktree.get().pluginId
+        version = libs.versions.tasktree.get()
         implementationClass = "com.github.klee0kai.tasktree.TaskTreePlugin"
         displayName = "Task Tree"
         description = "Print gradle build dependencies graph"

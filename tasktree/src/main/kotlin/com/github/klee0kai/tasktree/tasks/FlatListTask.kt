@@ -1,64 +1,57 @@
 package com.github.klee0kai.tasktree.tasks
 
-import com.github.klee0kai.tasktree.TaskStat
 import com.github.klee0kai.tasktree.TaskTreeExtension
-import com.github.klee0kai.tasktree.utils.allRequestedTasks
+import com.github.klee0kai.tasktree.info.TaskStat
+import com.github.klee0kai.tasktree.info.TaskStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
-import com.github.klee0kai.tasktree.utils.fullName
-import com.github.klee0kai.tasktree.utils.simpleClassName
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Description
 import org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier
+import org.gradle.internal.serialization.Cached
 import javax.inject.Inject
 
 open class FlatListTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
-    private val statHelper = TaskStatHelper()
+    private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
 
-    override fun generate(project: Project) {
-        statHelper.collectFrom(project)
-
-        val allTasksOrdered = project.allRequestedTasks
-        allTasksOrdered.forEach { render(task = it) }
-
+    private val tasksStats by lazy {
+        TaskStatHelper.calcToTaskStats(tasksInfos.get())
+            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
     }
 
-    private fun render(task: Task) {
-        graphRenderer?.visit({
-            val taskStat = statHelper.taskStat[task] ?: return@visit
+    @TaskAction
+    fun generate() {
+        reportGenerator().generateReport(
+            listOf(projectDetails.get()),
+            { it }
+        ) { projectTasks ->
+            val graphRenderer = GraphRenderer(renderer.textOutput)
 
-            printTaskShort(taskStat)
+            tasksStats
+                .sortedBy { it.allDepsCount }
+                .forEach { taskStat ->
+                    graphRenderer.visit({
+                        printTaskShort(taskStat)
 
-            if (ext.printClassName) {
-                withStyle(Description)
-                    .text(" class: ${task.simpleClassName};")
-            }
+                        if (ext.printDetails) {
+                            withStyle(Description)
+                                .text(" class: ${taskStat.simpleClassName};")
+                        }
 
-            if (task.isIncludedBuild) {
-                withStyle(Description)
-                    .text(" (included build '${task.project.gradle.rootProject.name}')")
-            }
+                    }, /*last child */ true)
 
-            val inputs by lazy { task.inputs.files.files }
-            if (ext.inputs && inputs.isNotEmpty())
-                withStyle(Description)
-                    .text(" inputs: [ ${inputs.joinToString { it.path }} ] ")
-
-            val outputs by lazy { task.outputs.files.files }
-            if (ext.outputs && outputs.isNotEmpty())
-                withStyle(Description)
-                    .text(" outputs: [ ${outputs.joinToString { it.path }} ] ")
-
-        }, /*last child */ true)
+                }
+        }
     }
+
 
     private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
         withStyle(Identifier)
-            .text(taskStat.task.fullName)
+            .text(taskStat.taskName)
 
         if (ext.printPrice) {
             withStyle(Description)
@@ -68,18 +61,11 @@ open class FlatListTask @Inject constructor(
             withStyle(Description)
                 .text(" importance: ${taskStat.importance};")
         }
-        if (ext.printImportanceOutSide) {
+        if (ext.printRelativePrice) {
             withStyle(Description)
-                .text(" importance outside: ${taskStat.importanceOutsideProject};")
-        }
-        if (ext.printComplexPrice) {
-            withStyle(Description)
-                .text(" complexPrice: ${taskStat.complexPrice.formatString()};")
+                .text(" relativePrice: ${taskStat.relativePrice.formatString()};")
         }
     }
-
-    private val Task.isIncludedBuild get() = this@FlatListTask.project.gradle != project.gradle
-
 
 }
 

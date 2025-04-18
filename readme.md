@@ -7,29 +7,14 @@ Print gradle task dependencies graph
 
 ## Usage
 
-Configure classpath in project's `build.gradle`:
-
-```kotlin
-buildscript {
-    repositories {
-        maven(url = "https://jitpack.io")
-    }
-    dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.9")
-    }
-}
-```
-
 Apply plugin in your module's `build.gradle`:
 
 ```kotlin
 plugins {
-    id("tasktree")
+    id("com.github.klee0kai.tasktree") version "0.0.10"
 }
 
 tasktree {
-    inputs = false
-    outputs = false
     printClassName = true
     maxDepth = 1
 }
@@ -38,7 +23,35 @@ tasktree {
 Report your build graph
 
 ```bash
-./gradlew tasktree assemble
+./gradlew taskTree assemble
+
+>>
+:example:assemble price: 12; depth: 6; importance: 3; relativePrice: 0,55; relativeDepth: 0,67;
++--- :example:simple_first_task price: 2; depth: 2; importance: 4; relativePrice: 0,09; relativeDepth: 0,22;
+|    \--- :example:sub_first_task price: 1; depth: 1; importance: 5; relativePrice: 0,05; relativeDepth: 0,11;
+
+```
+
+Verify project's module dependency depth
+
+```bash 
+./gradlew projectTree  --verifyDepth=1
+
+>> Heavy projects: ':example' depth: 2
+```
+
+Build graphs
+
+```bash 
+./gradlew projectGraph
+
+>>
+┌─────────────┐
+│:example_core│
+└┬────────────┘
+┌▽───────┐     
+│:example│     
+└────────┘     
 ```
 
 ## Configure Init Script
@@ -52,7 +65,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.9")
+        classpath("com.github.klee0kai.tasktree:com.github.klee0kai.tasktree.gradle.plugin:0.0.10")
     }
 }
 
@@ -61,7 +74,9 @@ rootProject{
 
     extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
         ?.apply {
-            printComplexPrice = true
+            maxDepth = 1
+            printDetails = true
+            printRelativePrice = true
         }
 }
 ```
