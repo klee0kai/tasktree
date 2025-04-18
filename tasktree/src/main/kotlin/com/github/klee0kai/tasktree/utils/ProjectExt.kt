@@ -7,7 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph
 
-private const val RECURSIVE_DETECT = 10_000
+const val RECURSIVE_DETECT = 100
 
 val Project.fullName
     get() = buildString {
@@ -32,4 +32,29 @@ val Project.parents
     get() = generateSequence(this) {
         runCatching { it.parent }.getOrNull()
     }.take(RECURSIVE_DETECT)
+
+fun <T> Sequence<T>.recursiveDetect(
+    detectCallback: (List<T>) -> Unit = {},
+): Sequence<T> {
+    val noValue = object {};
+    var ticker = 0
+    var rabbit: Any? = noValue
+    var turtle: Any? = noValue
+    var recursiveDetected = false
+    val recursiveCollection = mutableListOf<T>()
+
+    return onEach {
+        if (recursiveDetected) {
+            recursiveCollection.add(it)
+            if (recursiveCollection.size > 2 && recursiveCollection.first() == recursiveCollection.last()) {
+                detectCallback.invoke(recursiveCollection)
+            }
+        } else {
+            rabbit = it
+            if (turtle == rabbit) recursiveDetected = true
+            ticker = (ticker + 1) % 2
+            if (ticker == 0) turtle = it
+        }
+    }
+}
 

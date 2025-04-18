@@ -1,6 +1,7 @@
 package com.github.klee0kai.tasktree.info
 
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
+import java.util.*
 
 class TaskStat(
     val id: Int = 0,
@@ -10,48 +11,58 @@ class TaskStat(
     val projectName: String? = null,
     val projectDetails: ProjectDetails? = null,
     val rootProjectDetails: ProjectDetails? = null,
-    val dependencies: MutableList<TaskStat> = mutableListOf(),
-    val dependedOnTasks: MutableList<TaskStat> = mutableListOf(),
+    val dependencies: MutableSet<TaskStat> = mutableSetOf(),
+    val dependedOnTasks: MutableSet<TaskStat> = mutableSetOf(),
 ) {
 
     val fullName: String = "${projectName}:${taskName}"
 
-    var allDepsCount: Long = 0
+    var allDepsCount: Int = 0
         private set
         get() {
-            if (field != 0L) return field
-            field = dependencies.sumOf { 1 + it.allDepsCount }
+            if (field != 0) return field
+            field = allDependencies.count()
             return field
         }
 
-    var allDependedOnCount: Long = 0
+    var allDependedOnCount: Int = 0
         private set
         get() {
-            if (field != 0L) return field
-            field = dependedOnTasks.sumOf { 1 + it.allDependedOnCount }
+            if (field != 0) return field
+            field = allDependedOnTasks.count()
             return field
         }
 
 
-    var allDependedOnOutsideProjectCount: Long = 0
+    var allDependedOnOutsideProjectCount: Int = 0
         private set
         get() {
-            if (field != 0L) return field
-            field = dependedOnTasks.filter { it.projectDetails != projectDetails }.sumOf { 1 + it.allDependedOnCount }
+            if (field != 0) return field
+            field = allDependedOnTasks.count { it.projectDetails != projectDetails }
             return field
         }
 
-    val allDependencies: Sequence<TaskStat> = sequence {
-        yieldAll(dependencies)
-        dependencies.forEach {
-            yieldAll(it.allDependencies)
+    val allDependencies = sequence {
+        val sent = mutableSetOf<Int>()
+        val deps = LinkedList(dependencies.toMutableList())
+        while (deps.isNotEmpty()) {
+            val dep = deps.pollFirst()
+            if (sent.contains(dep.id)) continue
+            yield(dep)
+            sent.add(dep.id)
+            deps.addAll(dep.dependencies)
         }
     }
 
-    val allDependedOnTasks: Sequence<TaskStat> = sequence {
-        yieldAll(dependedOnTasks)
-        dependedOnTasks.forEach {
-            yieldAll(it.allDependedOnTasks)
+    val allDependedOnTasks = sequence {
+        val sent = mutableSetOf<Int>()
+        val deps = LinkedList(dependedOnTasks.toMutableList())
+        while (deps.isNotEmpty()) {
+            val dep = deps.pollFirst()
+            if (sent.contains(dep.id)) continue
+            yield(dep)
+            sent.add(dep.id)
+            deps.addAll(dep.dependedOnTasks)
         }
     }
 

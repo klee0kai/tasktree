@@ -31,7 +31,13 @@ open class TaskTreeTask @Inject constructor(
             { it.key }
         ) { projectTasks ->
             val topTasks = projectTasks.value
-                .filter { task -> task.allDependedOnTasks.none { allRequestedTasksIds.get().contains(it.id) } }
+                .filter { task ->
+                    if (allRequestedTasksIds.get().isNotEmpty()) {
+                        task.dependedOnTasks.none { allRequestedTasksIds.get().contains(it.id) }
+                    } else {
+                        task.allDependedOnCount <= 0L
+                    }
+                }
                 .sortedBy { it.allDependedOnCount }
             topTasks.forEach { render(it) }
 
