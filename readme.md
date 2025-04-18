@@ -20,7 +20,7 @@ tasktree {
 }
 ```
 
-Report your build graph
+Project build report in the form of a build graph. [Diagon](https://github.com/ArthurSonzogni/Diagon) must be installed
 
 ```bash
 ./gradlew taskTree assemble
@@ -69,7 +69,7 @@ initscript {
     }
 }
 
-rootProject{
+rootProject {
     pluginManager.apply(com.github.klee0kai.tasktree.TaskTreePlugin::class.java)
 
     extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
