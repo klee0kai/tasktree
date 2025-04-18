@@ -23,10 +23,7 @@ open class TaskTreeTask @Inject constructor(
 
     private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
 
-    private val tasksStats by lazy {
-        TaskStatHelper.calcToTaskStats(tasksInfos.get())
-            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
-    }
+    private var tasksStats: List<TaskStat> = emptyList()
 
     @Input
     @Optional
@@ -40,6 +37,9 @@ open class TaskTreeTask @Inject constructor(
 
     @TaskAction
     fun generate() {
+        tasksStats = TaskStatHelper.calcToTaskStats(tasksInfos.get())
+            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
+
         renderedTasks.clear()
         reportGenerator().generateReport(
             listOf(projectDetails.get()),

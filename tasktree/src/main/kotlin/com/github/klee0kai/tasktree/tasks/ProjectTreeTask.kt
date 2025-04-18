@@ -23,7 +23,7 @@ open class ProjectTreeTask @Inject constructor(
 
     private val projectsInfos = Cached.of { ProjectStatHelper.collectProjectDependencies(project) }
 
-    private val projectsStats by lazy { ProjectStatHelper.calcToProjectStats(projectsInfos.get()) }
+    private var projectsStats: List<ProjectInfo> = emptyList()
 
     @Input
     @Optional
@@ -37,6 +37,8 @@ open class ProjectTreeTask @Inject constructor(
 
     @TaskAction
     fun generate() {
+        projectsStats = ProjectStatHelper.calcToProjectStats(projectsInfos.get())
+
         renderedProjects.clear()
         reportGenerator().generateReport(
             listOf(projectDetails.get()),
