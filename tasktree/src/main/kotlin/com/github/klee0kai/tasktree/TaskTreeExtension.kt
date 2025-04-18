@@ -3,24 +3,14 @@ package com.github.klee0kai.tasktree
 open class TaskTreeExtension {
 
     /**
-     * Print task inputs
-     */
-    var inputs: Boolean = false
-
-    /**
-     * Print task outputs
-     */
-    var outputs: Boolean = false
-
-    /**
      * Graph max depth
      */
     var maxDepth: Int = -1
 
     /**
-     * print task's class type
+     * print task's/project additional details
      */
-    var printClassName: Boolean = false
+    var printDetails: Boolean = false
 
     /**
      * Don't show doubles in graph
@@ -38,29 +28,15 @@ open class TaskTreeExtension {
     var printImportance: Boolean = false
 
     /**
-     * Print the number of dependent tasks from another project
+     * show the relative price from the maximum
      */
-    var printImportanceOutSide: Boolean = false
-
-    /**
-     * Complex price
-     * ```
-     * ( price ) * ( importance )
-     * ```
-     * Show that task expensive to run and necessary for many others
-     */
-    var printComplexPrice: Boolean = false
+    var printRelativePrice: Boolean = false
 
 
     /**
-     * List sorted list of most expensive tasks
+     * List sorted list of most expensive tasks or projects
      */
-    var printMostExpensiveTasks: Boolean = false
-
-    /**
-     * List sorted list of most expensive modules
-     */
-    var printMostExpensiveModules: Boolean = false
+    var printMostExpensive: Boolean = false
 
 }
 

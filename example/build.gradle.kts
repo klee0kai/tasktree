@@ -1,6 +1,6 @@
 plugins {
-    id("java")
-    id("tasktree")
+    `kotlin-dsl`
+    alias(libs.plugins.tasktree)
 }
 
 val firstTask = tasks.create("simple_first_task") {
@@ -31,17 +31,15 @@ tasks.create("sub_second_task") {
 }
 
 tasktree {
-
-    inputs = false
-    outputs = false
-    printClassName = false
+    printDetails = false
     printPrice = true
     printImportance = true
-    printComplexPrice = true
-    printDoubles = true
-    printImportanceOutSide = true
-
-
+    printRelativePrice = true
+    printDoubles = false
+    printMostExpensive = true
 }
 
+dependencies {
+    implementation(project(":example_core"))
+}
 

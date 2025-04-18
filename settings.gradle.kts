@@ -13,8 +13,14 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
     }
+    versionCatalogs {
+        create("libs") {
+            from(files("libs.versions.toml"))
+        }
+    }
 }
 
 rootProject.name = "taskTree"
 includeBuild("tasktree")
 include("example")
+include("example_core")
