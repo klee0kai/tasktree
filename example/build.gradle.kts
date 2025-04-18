@@ -37,9 +37,6 @@ tasktree {
     printComplexPrice = true
     printDoubles = false
     printImportanceOutSide = true
-
-//    printMostExpensiveTasks = true
-//    printMostExpensiveModules = true
 }
 
 
