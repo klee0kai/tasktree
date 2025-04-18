@@ -8,9 +8,9 @@ open class TaskTreeExtension {
     var maxDepth: Int = -1
 
     /**
-     * print task's class type
+     * print task's/project additional details
      */
-    var printClassName: Boolean = false
+    var printDetails: Boolean = false
 
     /**
      * Don't show doubles in graph
@@ -28,11 +28,6 @@ open class TaskTreeExtension {
     var printImportance: Boolean = false
 
     /**
-     * Print the number of dependent tasks from another project
-     */
-    var printImportanceOutSide: Boolean = false
-
-    /**
      * Complex price
      * ```
      * ( price ) * ( importance )
@@ -43,14 +38,9 @@ open class TaskTreeExtension {
 
 
     /**
-     * List sorted list of most expensive tasks
+     * List sorted list of most expensive tasks or projects
      */
-    var printMostExpensiveTasks: Boolean = false
-
-    /**
-     * List sorted list of most expensive modules
-     */
-    var printMostExpensiveModules: Boolean = false
+    var printMostExpensive: Boolean = false
 
 }
 

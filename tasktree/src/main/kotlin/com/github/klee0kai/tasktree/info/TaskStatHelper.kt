@@ -31,9 +31,8 @@ object TaskStatHelper {
         return tasksInfos.values.toList()
     }
 
-
     fun calcToTaskStats(taskInfos: List<TaskInfo>): List<TaskStat> {
-        val taskStats = taskInfos.map { taskInfo -> taskInfo.toTaskStat() }
+        val taskStats = taskInfos.map { taskInfo -> taskInfo.toTaskStat(allTasksCount = taskInfos.count()) }
             .associateBy { task -> task.id }
 
         taskInfos.forEach { taskInfo ->

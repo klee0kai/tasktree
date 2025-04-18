@@ -37,7 +37,7 @@ open class FlatListTask @Inject constructor(
                     graphRenderer.visit({
                         printTaskShort(taskStat)
 
-                        if (ext.printClassName) {
+                        if (ext.printDetails) {
                             withStyle(Description)
                                 .text(" class: ${taskStat.simpleClassName};")
                         }
@@ -60,10 +60,6 @@ open class FlatListTask @Inject constructor(
         if (ext.printImportance) {
             withStyle(Description)
                 .text(" importance: ${taskStat.importance};")
-        }
-        if (ext.printImportanceOutSide) {
-            withStyle(Description)
-                .text(" importance outside: ${taskStat.importanceOutsideProject};")
         }
         if (ext.printComplexPrice) {
             withStyle(Description)

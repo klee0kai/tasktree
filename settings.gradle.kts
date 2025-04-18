@@ -23,3 +23,4 @@ dependencyResolutionManagement {
 rootProject.name = "taskTree"
 includeBuild("tasktree")
 include("example")
+include("example_core")

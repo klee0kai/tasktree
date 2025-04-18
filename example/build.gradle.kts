@@ -31,12 +31,15 @@ tasks.create("sub_second_task") {
 }
 
 tasktree {
-    printClassName = false
+    printDetails = false
     printPrice = true
     printImportance = true
     printComplexPrice = true
     printDoubles = false
-    printImportanceOutSide = true
+    printMostExpensive = true
 }
 
+dependencies {
+    implementation(project(":example_core"))
+}
 

@@ -13,6 +13,7 @@ class TaskStat(
     val rootProjectDetails: ProjectDetails? = null,
     val dependencies: MutableSet<TaskStat> = mutableSetOf(),
     val dependedOnTasks: MutableSet<TaskStat> = mutableSetOf(),
+    val allTasksCount: Int = 0,
 ) {
 
     val fullName: String = "${projectName}:${taskName}"
@@ -70,18 +71,15 @@ class TaskStat(
     val price get() = allDepsCount
     val importance get() = allDependedOnCount
 
-    val complexPrice get() = (price * importance).toFloat() / dependencies.size
-
-
-    // ---- outside of project ------
-    val importanceOutsideProject get() = allDependedOnOutsideProjectCount
-    val complexPriceOutsideProject get() = (price * importanceOutsideProject).toFloat() / dependencies.size
+    val complexPrice get() = (price * importance).toFloat() / allTasksCount
 
 
 }
 
 
-fun TaskInfo.toTaskStat() =
+fun TaskInfo.toTaskStat(
+    allTasksCount: Int = 0,
+) =
     TaskStat(
         id,
         taskName,
@@ -89,5 +87,6 @@ fun TaskInfo.toTaskStat() =
         simpleClassName,
         projectName,
         projectDetails,
-        rootProjectDetails
+        rootProjectDetails,
+        allTasksCount = allTasksCount,
     )

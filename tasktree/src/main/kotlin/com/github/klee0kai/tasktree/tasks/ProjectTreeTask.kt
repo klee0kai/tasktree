@@ -1,8 +1,8 @@
 package com.github.klee0kai.tasktree.tasks
 
 import com.github.klee0kai.tasktree.TaskTreeExtension
-import com.github.klee0kai.tasktree.info.TaskStat
-import com.github.klee0kai.tasktree.info.TaskStatHelper
+import com.github.klee0kai.tasktree.projectInfo.ProjectInfo
+import com.github.klee0kai.tasktree.projectInfo.ProjectStatHelper
 import com.github.klee0kai.tasktree.utils.formatString
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer
@@ -12,58 +12,52 @@ import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import org.gradle.internal.serialization.Cached
 import javax.inject.Inject
 
-open class TaskTreeTask @Inject constructor(
+open class ProjectTreeTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
-    private val renderedTasks = mutableSetOf<TaskStat>()
+    private val renderedProjects = mutableSetOf<ProjectInfo>()
 
-    private val tasksInfos = Cached.of { TaskStatHelper.collectAllTasksInfo(project) }
+    private val projectsInfos = Cached.of { ProjectStatHelper.collectProjectDependencies(project) }
 
-    private val tasksStats by lazy {
-        TaskStatHelper.calcToTaskStats(tasksInfos.get())
-            .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
-    }
+    private val projectsStats by lazy { ProjectStatHelper.calcToProjectStats(projectsInfos.get()) }
 
     @TaskAction
     fun generate() {
-        renderedTasks.clear()
+        renderedProjects.clear()
         reportGenerator().generateReport(
             listOf(projectDetails.get()),
             { it }
-        ) { projectTasks ->
+        ) { projects ->
             val graphRenderer = GraphRenderer(renderer.textOutput)
-            val topTasks = tasksStats
-                .filter { task ->
-                    if (allRequestedTasksIds.get().isNotEmpty()) {
-                        task.dependedOnTasks.none { allRequestedTasksIds.get().contains(it.id) }
-                    } else {
-                        task.allDependedOnCount <= 0L
-                    }
-                }
+            val topProjects = projectsStats
+                .filter { project -> project.allDependedOnCount <= 0L }
                 .sortedBy { it.allDependedOnCount }
-            topTasks.forEach { graphRenderer.render(it) }
+            topProjects.forEach { graphRenderer.render(it) }
 
-            renderer.printMostExpensiveTasksIfNeed()
+            renderer.printMostExpensiveProjectsIfNeed()
         }
 
     }
 
-    private fun GraphRenderer.render(taskStat: TaskStat, lastChild: Boolean = true, depth: Int = 0) {
+    private fun GraphRenderer.render(
+        projectStat: ProjectInfo,
+        lastChild: Boolean = true,
+        depth: Int = 0,
+    ) {
         visit({
-
-            printTaskShort(taskStat)
+            printProjectShort(projectStat)
 
             if (ext.printDetails) {
                 withStyle(Description)
-                    .text(" class: ${taskStat.className};")
+                    .text(" class: ${projectStat.path};")
             }
 
         }, lastChild)
 
-        if (taskStat.dependencies.isEmpty()) return
+        if (projectStat.dependencies.isEmpty()) return
 
-        if ((!ext.printDoubles && taskStat in renderedTasks) || ext.maxDepth in 0..depth) {
+        if ((!ext.printDoubles && projectStat in renderedProjects) || ext.maxDepth in 0..depth) {
             startChildren()
             visit({
                 withStyle(Normal)
@@ -72,52 +66,51 @@ open class TaskTreeTask @Inject constructor(
             completeChildren()
             return
         }
-        renderedTasks.add(taskStat)
+        renderedProjects.add(projectStat)
 
         startChildren()
-        val depsSize = taskStat.dependencies.size
-        taskStat.dependencies.forEachIndexed { indx, it ->
+        val depsSize = projectStat.dependencies.size
+        projectStat.dependencies.forEachIndexed { indx, it ->
             val lastChild = indx >= depsSize - 1
             render(it, lastChild = lastChild, depth = depth + 1)
         }
         completeChildren()
     }
 
-    private fun TextReportRenderer.printMostExpensiveTasksIfNeed() {
+    private fun TextReportRenderer.printMostExpensiveProjectsIfNeed() {
         if (ext.printMostExpensive) {
-            val allStat = tasksStats
+            val allStat = projectsStats
                 .filter { it.complexPrice > 0 }
                 .sortedByDescending { it.complexPrice }
             textOutput
                 .println()
                 .withStyle(Header)
-                .println("Most expensive tasks:")
+                .println("Most expensive modules:")
 
             allStat.forEach {
                 renderer.textOutput
-                    .printTaskShort(it)
+                    .printProjectShort(it)
                     .println()
             }
             textOutput.println()
         }
     }
 
-
-    private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
+    private fun StyledTextOutput.printProjectShort(projectInfo: ProjectInfo) = apply {
         withStyle(Identifier)
-            .text(taskStat.fullName)
+            .text(projectInfo.fullName)
 
         if (ext.printPrice) {
             withStyle(Description)
-                .text(" price: ${taskStat.price};")
+                .text(" price: ${projectInfo.price};")
         }
         if (ext.printImportance) {
             withStyle(Description)
-                .text(" importance: ${taskStat.importance};")
+                .text(" importance: ${projectInfo.importance};")
         }
         if (ext.printComplexPrice) {
             withStyle(Description)
-                .text(" complexPrice: ${taskStat.complexPrice.formatString()};")
+                .text(" complexPrice: ${projectInfo.complexPrice.formatString()};")
         }
     }
 
