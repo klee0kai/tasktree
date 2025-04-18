@@ -16,7 +16,7 @@ open class TaskTreePlugin : Plugin<Project> {
 
     private fun Project.applyProjectReportOnProject(ext: TaskTreeExtension) {
         tasks.register("projectTree", ProjectTreeTask::class.java, ext)
-        tasks.register("projectGraph", ProjectsGraphTask::class.java, ext)
+        tasks.register("projectGraph", ProjectsGraphTask::class.java)
     }
 
 
