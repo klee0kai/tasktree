@@ -1,9 +1,6 @@
 package com.github.klee0kai.tasktree
 
-import com.github.klee0kai.tasktree.tasks.TaskGrapthTask
-import com.github.klee0kai.tasktree.tasks.FlatListTask
-import com.github.klee0kai.tasktree.tasks.ProjectTreeTask
-import com.github.klee0kai.tasktree.tasks.TaskTreeTask
+import com.github.klee0kai.tasktree.tasks.*
 import com.github.klee0kai.tasktree.utils.allRequestedTasks
 import com.github.klee0kai.tasktree.utils.taskGraph
 import org.gradle.api.Plugin
@@ -19,13 +16,14 @@ open class TaskTreePlugin : Plugin<Project> {
 
     private fun Project.applyProjectReportOnProject(ext: TaskTreeExtension) {
         tasks.register("projectTree", ProjectTreeTask::class.java, ext)
+        tasks.register("projectGraph", ProjectsGraphTask::class.java, ext)
     }
 
 
     private fun Project.applyTaskReportOnProject(ext: TaskTreeExtension) {
         afterEvaluate {
             val taskTree = tasks.register("taskTree", TaskTreeTask::class.java, ext)
-            val taskDag = tasks.register("taskGraph", TaskGrapthTask::class.java)
+            val taskDag = tasks.register("taskGraph", TaskGraphTask::class.java)
             val flatlist = tasks.register("flatList", FlatListTask::class.java, ext)
 
             taskGraph.whenReady {
