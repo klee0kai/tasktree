@@ -65,7 +65,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai.tasktree:com.github.klee0kai.tasktree.gradle.plugin:0.0.10")
+        classpath("com.github.klee0kai:tasktree:0.0.10")
     }
 }
 
