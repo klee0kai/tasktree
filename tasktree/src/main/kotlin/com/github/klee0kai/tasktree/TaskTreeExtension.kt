@@ -28,13 +28,9 @@ open class TaskTreeExtension {
     var printImportance: Boolean = false
 
     /**
-     * Complex price
-     * ```
-     * ( price ) * ( importance )
-     * ```
-     * Show that task expensive to run and necessary for many others
+     * show the relative price from the maximum
      */
-    var printComplexPrice: Boolean = false
+    var printRelativePrice: Boolean = false
 
 
     /**

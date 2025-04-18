@@ -34,7 +34,7 @@ tasktree {
     printDetails = false
     printPrice = true
     printImportance = true
-    printComplexPrice = true
+    printRelativePrice = true
     printDoubles = false
     printMostExpensive = true
 }

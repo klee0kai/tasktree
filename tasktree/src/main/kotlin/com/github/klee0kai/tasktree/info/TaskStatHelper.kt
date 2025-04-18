@@ -32,8 +32,13 @@ object TaskStatHelper {
     }
 
     fun calcToTaskStats(taskInfos: List<TaskInfo>): List<TaskStat> {
-        val taskStats = taskInfos.map { taskInfo -> taskInfo.toTaskStat(allTasksCount = taskInfos.count()) }
+        val taskStats = taskInfos.map { taskInfo -> taskInfo.toTaskStat() }
             .associateBy { task -> task.id }
+
+        taskStats.values.forEach { task ->
+            task.allTasksCount = taskInfos.size
+        }
+
 
         taskInfos.forEach { taskInfo ->
             taskInfo.dependencies.forEach { dependsOn ->
@@ -45,6 +50,11 @@ object TaskStatHelper {
             taskStat.dependencies.forEach { dependsOn ->
                 dependsOn.dependedOnTasks.add(taskStat)
             }
+        }
+
+        val maxPrice = taskStats.values.maxOfOrNull { it.price } ?: 0
+        taskStats.values.forEach { task ->
+            task.maxPrice = maxPrice
         }
 
         return taskStats.values.toList()

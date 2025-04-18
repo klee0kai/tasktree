@@ -80,8 +80,8 @@ open class ProjectTreeTask @Inject constructor(
     private fun TextReportRenderer.printMostExpensiveProjectsIfNeed() {
         if (ext.printMostExpensive) {
             val allStat = projectsStats
-                .filter { it.complexPrice > 0 }
-                .sortedByDescending { it.complexPrice }
+                .filter { it.relativePrice > 0 }
+                .sortedByDescending { it.relativePrice }
             textOutput
                 .println()
                 .withStyle(Header)
@@ -108,9 +108,9 @@ open class ProjectTreeTask @Inject constructor(
             withStyle(Description)
                 .text(" importance: ${projectInfo.importance};")
         }
-        if (ext.printComplexPrice) {
+        if (ext.printRelativePrice) {
             withStyle(Description)
-                .text(" complexPrice: ${projectInfo.complexPrice.formatString()};")
+                .text(" relativePrice: ${projectInfo.relativePrice.formatString()};")
         }
     }
 

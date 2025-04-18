@@ -61,9 +61,9 @@ open class FlatListTask @Inject constructor(
             withStyle(Description)
                 .text(" importance: ${taskStat.importance};")
         }
-        if (ext.printComplexPrice) {
+        if (ext.printRelativePrice) {
             withStyle(Description)
-                .text(" complexPrice: ${taskStat.complexPrice.formatString()};")
+                .text(" relativePrice: ${taskStat.relativePrice.formatString()};")
         }
     }
 

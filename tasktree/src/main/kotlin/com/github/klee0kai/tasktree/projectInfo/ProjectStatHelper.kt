@@ -43,6 +43,11 @@ object ProjectStatHelper {
             }
         }
 
+        val maxPrice = projectInfos.maxOfOrNull { it.price } ?: 0
+        projectInfos.forEach { project ->
+            project.maxPrice = maxPrice
+        }
+
         return projectInfos
     }
 

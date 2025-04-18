@@ -12,6 +12,7 @@ class ProjectInfo(
     val dependedOnProjects: MutableSet<ProjectInfo> = mutableSetOf(),
 ) {
     var allProjectsCount: Int = 0
+    var maxPrice: Int = 0
 
     var allDepsCount: Int = 0
         private set
@@ -55,11 +56,10 @@ class ProjectInfo(
     }
 
 
-    val price get() = allDepsCount
+    val price get() = allDepsCount + 1
     val importance get() = allDependedOnCount
 
-    val complexPrice get() = (price * importance).toFloat() / allProjectsCount
-
+    val relativePrice get() = price.toFloat() / maxPrice
 
 }
 
