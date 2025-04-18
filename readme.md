@@ -24,12 +24,34 @@ Report your build graph
 
 ```bash
 ./gradlew taskTree assemble
+
+>>
+:example:assemble price: 12; depth: 6; importance: 3; relativePrice: 0,55; relativeDepth: 0,67;
++--- :example:simple_first_task price: 2; depth: 2; importance: 4; relativePrice: 0,09; relativeDepth: 0,22;
+|    \--- :example:sub_first_task price: 1; depth: 1; importance: 5; relativePrice: 0,05; relativeDepth: 0,11;
+
 ```
 
 Verify project's module dependency depth
 
 ```bash 
-./gradlew projectTree  --verifyDepth=2
+./gradlew projectTree  --verifyDepth=1
+
+>> Heavy projects: ':example' depth: 2
+```
+
+Build graphs
+
+```bash 
+./gradlew projectGraph
+
+>>
+┌─────────────┐
+│:example_core│
+└┬────────────┘
+┌▽───────┐     
+│:example│     
+└────────┘     
 ```
 
 ## Configure Init Script
@@ -53,8 +75,8 @@ rootProject{
     extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)
         ?.apply {
             maxDepth = 1
-            printClassName = true
-            printComplexPrice = true
+            printDetails = true
+            printRelativePrice = true
         }
 }
 ```
