@@ -1,6 +1,5 @@
 package com.github.klee0kai.tasktree.info
 
-import com.github.klee0kai.tasktree.projectInfo.ProjectInfo
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import java.util.*
 
@@ -38,33 +37,29 @@ class TaskStat(
             return field
         }
 
-    var depth: Int = 0
+    val depth: Int get() = depthDependencies.size
+
+    var depthDependencies: List<TaskStat> = emptyList()
         private set
         get() {
-            if (field != 0) return field
-            val checked = mutableMapOf<Int, Int>()
-            val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
-            while (deps.isNotEmpty()) {
-                val dep = deps.pollFirst()
-                if (checked.getOrDefault(dep.first.id, 0) >= dep.second) continue
-                checked[dep.first.id] = dep.second
-                deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
-            }
-            field = checked.values.maxOfOrNull { it } ?: 0
-            return field
-        }
-
-    val depthDependencies: List<TaskStat>
-        get() {
+            if (field.isNotEmpty()) return field
             val checked = mutableMapOf<Int, List<TaskStat>>()
             val deps = LinkedList(dependencies.map { listOf(this@TaskStat, it) }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                if (checked.getOrDefault(dep.last().id, emptyList()).size >= dep.size) continue
+                val checkedDepthDeps = checked.getOrDefault(dep.last().id, emptyList())
+                if (checkedDepthDeps.size >= dep.size
+                    || checkedDepthDeps.isNotEmpty()
+                    && dep.take(checkedDepthDeps.size).map { it.id } == checkedDepthDeps.map { it.id } // ignore doubles
+                ) {
+                    continue
+                }
                 checked[dep.last().id] = dep
+                deps.removeAll { task -> task.last().id in dep.last().dependencies.map { it.id } }
                 deps.addAll(0, dep.last().dependencies.map { dep + it })
             }
-            return checked.values.maxByOrNull { it.size } ?: emptyList()
+            field = checked.values.maxByOrNull { it.size } ?: emptyList()
+            return field
         }
 
     val allDependencies = sequence {
