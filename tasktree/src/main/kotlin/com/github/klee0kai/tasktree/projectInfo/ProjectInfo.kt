@@ -60,18 +60,29 @@ class ProjectInfo(
         private set
         get() {
             if (field != 0) return field
-            var maxDepth = 1
-            val checked = mutableSetOf<String>()
+            val checked = mutableMapOf<String, Int>()
             val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                if (checked.contains(dep.first.path)) continue
-                if (dep.second > maxDepth) maxDepth = dep.second
-                checked.add(dep.first.path)
+                if (checked.getOrDefault(dep.first.path, 0) >= dep.second) continue
+                checked[dep.first.path] = dep.second
                 deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
             }
-            field = maxDepth
+            field = checked.values.maxOfOrNull { it } ?: 0
             return field
+        }
+
+    val depthDependencies: List<ProjectInfo>
+        get() {
+            val checked = mutableMapOf<String, List<ProjectInfo>>()
+            val deps = LinkedList(dependencies.map { listOf(this@ProjectInfo, it) }.toMutableList())
+            while (deps.isNotEmpty()) {
+                val dep = deps.pollFirst()
+                if (checked.getOrDefault(dep.last().path, emptyList()).size >= dep.size) continue
+                checked[dep.last().path] = dep
+                deps.addAll(0, dep.last().dependencies.map { dep + it })
+            }
+            return checked.values.maxByOrNull { it.size } ?: emptyList<ProjectInfo>()
         }
 
 

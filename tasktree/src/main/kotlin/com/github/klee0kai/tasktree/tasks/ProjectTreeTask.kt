@@ -27,6 +27,11 @@ open class ProjectTreeTask @Inject constructor(
 
     @Input
     @Optional
+    @set:Option(option = "target", description = "Build graph to module as target")
+    protected var projectTarget: String? = null
+
+    @Input
+    @Optional
     @set:Option(option = "verifyDepth", description = "Verify project's module depth")
     protected var verifyDepth: String? = null
 
@@ -35,9 +40,12 @@ open class ProjectTreeTask @Inject constructor(
     @set:Option(option = "verifyPrice", description = "Verify project's module price")
     protected var verifyPrice: String? = null
 
+    override fun getDescription(): String = "Display the hierarchy of module dependencies in a project"
+
     @TaskAction
     fun generate() {
-        projectsStats = ProjectStatHelper.calcToProjectStats(projectsInfos.get())
+        projectsStats = ProjectStatHelper.calcToProjectStats(projectInfos = projectsInfos.get())
+            .let { ProjectStatHelper.filterByRequestedProject(projectStats = it, target = projectTarget) }
 
         renderedProjects.clear()
         reportGenerator().generateReport(
@@ -46,7 +54,13 @@ open class ProjectTreeTask @Inject constructor(
         ) { projects ->
             val graphRenderer = GraphRenderer(renderer.textOutput)
             val topProjects = projectsStats
-                .filter { project -> project.allDependedOnCount <= 0L }
+                .filter { project ->
+                    if (!projectTarget.isNullOrBlank()) {
+                        project.fullName == projectTarget
+                    } else {
+                        project.allDependedOnCount <= 0L
+                    }
+                }
                 .sortedByDescending { it.depth }
             topProjects.forEach { graphRenderer.render(it) }
 
@@ -105,14 +119,17 @@ open class ProjectTreeTask @Inject constructor(
 
             allStat.forEach {
                 renderer.textOutput
-                    .printProjectShort(it)
+                    .printProjectShort(projectInfo = it, printDepthLine = true)
                     .println()
             }
             textOutput.println()
         }
     }
 
-    private fun StyledTextOutput.printProjectShort(projectInfo: ProjectInfo) = apply {
+    private fun StyledTextOutput.printProjectShort(
+        projectInfo: ProjectInfo,
+        printDepthLine: Boolean = false,
+    ) = apply {
         withStyle(Identifier)
             .text(projectInfo.fullName)
 
@@ -122,6 +139,8 @@ open class ProjectTreeTask @Inject constructor(
 
             withStyle(Description)
                 .text(" depth: ${projectInfo.depth};")
+
+
         }
         if (ext.printImportance) {
             withStyle(Description)
@@ -133,6 +152,11 @@ open class ProjectTreeTask @Inject constructor(
 
             withStyle(Description)
                 .text(" relativeDepth: ${projectInfo.relativeDepth.formatString()};")
+        }
+
+        if (ext.printPrice && printDepthLine) {
+            withStyle(Description)
+                .text(" depth dependencies: ${projectInfo.depthDependencies.joinToString(" <- ") { it.fullName }};")
         }
     }
 
