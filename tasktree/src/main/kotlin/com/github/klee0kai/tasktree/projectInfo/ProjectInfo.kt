@@ -27,7 +27,7 @@ class ProjectInfo(
         private set
         get() {
             if (field != 0) return field
-            field = allDependedOnTasks.count()
+            field = allDependedOnProject.count()
             return field
         }
 
@@ -44,7 +44,7 @@ class ProjectInfo(
         }
     }
 
-    val allDependedOnTasks = sequence {
+    val allDependedOnProject = sequence {
         val sent = mutableSetOf<String>()
         val deps = LinkedList(dependedOnProjects.toMutableList())
         while (deps.isNotEmpty()) {
