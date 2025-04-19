@@ -11,7 +11,7 @@ Apply plugin in your module's `build.gradle`:
 
 ```kotlin
 plugins {
-    id("com.github.klee0kai.tasktree") version "0.0.11"
+    id("com.github.klee0kai.tasktree") version "0.0.12"
 }
 
 tasktree {
@@ -66,7 +66,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.11")
+        classpath("com.github.klee0kai:tasktree:0.0.12")
     }
 }
 
