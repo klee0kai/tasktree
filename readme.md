@@ -11,7 +11,7 @@ Apply plugin in your module's `build.gradle`:
 
 ```kotlin
 plugins {
-    id("com.github.klee0kai.tasktree") version "0.0.10"
+    id("com.github.klee0kai.tasktree") version "0.0.12"
 }
 
 tasktree {
@@ -20,7 +20,7 @@ tasktree {
 }
 ```
 
-Report your build graph
+Project build report in the form of a build graph. [Diagon](https://github.com/ArthurSonzogni/Diagon) must be installed
 
 ```bash
 ./gradlew taskTree assemble
@@ -37,7 +37,8 @@ Verify project's module dependency depth
 ```bash 
 ./gradlew projectTree  --verifyDepth=1
 
->> Heavy projects: ':example' depth: 2
+>> :dynamic_findstorage price: 3; depth: 3; importance: 0; relativePrice: 1,00; relativeDepth: 1,00; depth dependencies: :dynamic_findstorage <- :app_mobile <- :core;
+    Heavy projects: ':dynamic_findstorage' depth: 3
 ```
 
 Build graphs
@@ -65,11 +66,11 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai.tasktree:com.github.klee0kai.tasktree.gradle.plugin:0.0.10")
+        classpath("com.github.klee0kai:tasktree:0.0.12")
     }
 }
 
-rootProject{
+rootProject {
     pluginManager.apply(com.github.klee0kai.tasktree.TaskTreePlugin::class.java)
 
     extensions.findByType(com.github.klee0kai.tasktree.TaskTreeExtension::class.java)

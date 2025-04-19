@@ -15,16 +15,18 @@ object ProjectStatHelper {
                 path = it.path,
                 projectDetails = ProjectDetails.of(it),
             )
-        }.associateBy { it.name }
+        }.associateBy { it.path }
 
         rootProject.allprojects.forEach { project ->
-            val projectInfo = projectInfos[project.name] ?: return@forEach
+            val projectInfo = projectInfos[project.path] ?: return@forEach
             project.configurations
                 .firstOrNull { it.name.contains("implementation") }
                 ?.allDependencies
                 ?.filterIsInstance<ProjectDependency>()
                 ?.forEach { dep ->
-                    val depProjectInfo = projectInfos[dep.name] ?: return@forEach
+                    val depProjectInfo = runCatching { projectInfos[dep.path] }.getOrNull()
+                        ?: runCatching { projectInfos[dep.dependencyProject.path] }.getOrNull()
+                        ?: return@forEach
                     projectInfo.dependencies.add(depProjectInfo)
                 }
         }
@@ -53,5 +55,15 @@ object ProjectStatHelper {
         return projectInfos
     }
 
+
+    fun filterByRequestedProject(
+        projectStats: List<ProjectInfo>,
+        target: String?,
+    ): List<ProjectInfo> {
+        if (target.isNullOrBlank()) return projectStats
+        return projectStats.filter {
+            it.fullName == target || it.allDependedOnProject.any { it.fullName == target }
+        }
+    }
 
 }

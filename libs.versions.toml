@@ -1,6 +1,6 @@
 [versions]
 
-tasktree = "0.0.10"
+tasktree = "0.0.12"
 
 [libraries]
 

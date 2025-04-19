@@ -37,21 +37,28 @@ class TaskStat(
             return field
         }
 
-    var depth: Int = 0
+    val depth: Int get() = depthDependencies.size
+
+    var depthDependencies: List<TaskStat> = emptyList()
         private set
         get() {
-            if (field != 0) return field
-            var maxDepth = 1
-            val checked = mutableSetOf<Int>()
-            val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
+            if (field.isNotEmpty()) return field
+            val checked = mutableMapOf<Int, List<TaskStat>>()
+            val deps = LinkedList(dependencies.map { listOf(this@TaskStat, it) }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                if (checked.contains(dep.first.id)) continue
-                if (dep.second > maxDepth) maxDepth = dep.second
-                checked.add(dep.first.id)
-                deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
+                val checkedDepthDeps = checked.getOrDefault(dep.last().id, emptyList())
+                if (checkedDepthDeps.size >= dep.size
+                    || checkedDepthDeps.isNotEmpty()
+                    && dep.take(checkedDepthDeps.size).map { it.id } == checkedDepthDeps.map { it.id } // ignore doubles
+                ) {
+                    continue
+                }
+                checked[dep.last().id] = dep
+                deps.removeAll { task -> task.last().id in dep.last().dependencies.map { it.id } }
+                deps.addAll(0, dep.last().dependencies.map { dep + it })
             }
-            field = maxDepth
+            field = checked.values.maxByOrNull { it.size } ?: emptyList()
             return field
         }
 
