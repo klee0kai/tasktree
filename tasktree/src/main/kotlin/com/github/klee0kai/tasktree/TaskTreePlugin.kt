@@ -21,13 +21,14 @@ open class TaskTreePlugin : Plugin<Project> {
 
 
     private fun Project.applyTaskReportOnProject(ext: TaskTreeExtension) {
-        afterEvaluate {
+        afterEvaluate(10) {
             val taskTree = tasks.register("taskTree", TaskTreeTask::class.java, ext)
             val taskDag = tasks.register("taskGraph", TaskGraphTask::class.java)
             val flatlist = tasks.register("flatList", FlatListTask::class.java, ext)
 
             taskGraph.whenReady {
-                val isTaskTreeRequested = hasTask(taskTree.get()) || hasTask(taskDag.get()) || hasTask(flatlist.get())
+                val isTaskTreeRequested =
+                    hasTask(taskTree.get()) || hasTask(taskDag.get()) || hasTask(flatlist.get())
                 if (isTaskTreeRequested) {
                     allRequestedTasks.forEach {
                         it.enabled = false
@@ -35,7 +36,19 @@ open class TaskTreePlugin : Plugin<Project> {
                 }
             }
         }
+    }
 
+    /**
+     * we make sure that dependencies between tasks will no longer be configured
+     */
+    private fun Project.afterEvaluate(count: Int = 1, block: () -> Unit) {
+        if (count <= 0) {
+            block()
+        } else {
+            afterEvaluate {
+                afterEvaluate(count - 1, block)
+            }
+        }
     }
 
 }
