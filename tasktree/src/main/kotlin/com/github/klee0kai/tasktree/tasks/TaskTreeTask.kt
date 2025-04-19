@@ -62,7 +62,11 @@ open class TaskTreeTask @Inject constructor(
         }
     }
 
-    private fun GraphRenderer.render(taskStat: TaskStat, lastChild: Boolean = true, depth: Int = 0) {
+    private fun GraphRenderer.render(
+        taskStat: TaskStat,
+        lastChild: Boolean = true,
+        depth: Int = 0,
+    ) {
         visit({
 
             printTaskShort(taskStat)
@@ -108,7 +112,7 @@ open class TaskTreeTask @Inject constructor(
 
             allStat.forEach {
                 renderer.textOutput
-                    .printTaskShort(it)
+                    .printTaskShort(taskStat = it, printDepthLine = true)
                     .println()
             }
             textOutput.println()
@@ -116,7 +120,10 @@ open class TaskTreeTask @Inject constructor(
     }
 
 
-    private fun StyledTextOutput.printTaskShort(taskStat: TaskStat) = apply {
+    private fun StyledTextOutput.printTaskShort(
+        taskStat: TaskStat,
+        printDepthLine: Boolean = false,
+    ) = apply {
         withStyle(Identifier)
             .text(taskStat.fullName)
 
@@ -136,6 +143,12 @@ open class TaskTreeTask @Inject constructor(
 
             withStyle(Description)
                 .text(" relativeDepth: ${taskStat.relativeDepth.formatString()};")
+        }
+
+
+        if (ext.printPrice && printDepthLine) {
+            withStyle(Description)
+                .text(" depth dependencies: ${taskStat.depthDependencies.joinToString(" <- ") { it.fullName }};")
         }
     }
 

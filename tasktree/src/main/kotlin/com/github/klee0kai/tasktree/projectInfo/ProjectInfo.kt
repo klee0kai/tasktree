@@ -82,7 +82,7 @@ class ProjectInfo(
                 checked[dep.last().path] = dep
                 deps.addAll(0, dep.last().dependencies.map { dep + it })
             }
-            return checked.values.maxByOrNull { it.size } ?: emptyList<ProjectInfo>()
+            return checked.values.maxByOrNull { it.size } ?: emptyList()
         }
 
 

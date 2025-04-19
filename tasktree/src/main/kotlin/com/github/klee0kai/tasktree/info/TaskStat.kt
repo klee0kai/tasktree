@@ -1,5 +1,6 @@
 package com.github.klee0kai.tasktree.info
 
+import com.github.klee0kai.tasktree.projectInfo.ProjectInfo
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import java.util.*
 
@@ -41,18 +42,29 @@ class TaskStat(
         private set
         get() {
             if (field != 0) return field
-            var maxDepth = 1
-            val checked = mutableSetOf<Int>()
+            val checked = mutableMapOf<Int, Int>()
             val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                if (checked.contains(dep.first.id)) continue
-                if (dep.second > maxDepth) maxDepth = dep.second
-                checked.add(dep.first.id)
+                if (checked.getOrDefault(dep.first.id, 0) >= dep.second) continue
+                checked[dep.first.id] = dep.second
                 deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
             }
-            field = maxDepth
+            field = checked.values.maxOfOrNull { it } ?: 0
             return field
+        }
+
+    val depthDependencies: List<TaskStat>
+        get() {
+            val checked = mutableMapOf<Int, List<TaskStat>>()
+            val deps = LinkedList(dependencies.map { listOf(this@TaskStat, it) }.toMutableList())
+            while (deps.isNotEmpty()) {
+                val dep = deps.pollFirst()
+                if (checked.getOrDefault(dep.last().id, emptyList()).size >= dep.size) continue
+                checked[dep.last().id] = dep
+                deps.addAll(0, dep.last().dependencies.map { dep + it })
+            }
+            return checked.values.maxByOrNull { it.size } ?: emptyList()
         }
 
     val allDependencies = sequence {
