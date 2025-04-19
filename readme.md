@@ -37,7 +37,8 @@ Verify project's module dependency depth
 ```bash 
 ./gradlew projectTree  --verifyDepth=1
 
->> Heavy projects: ':example' depth: 2
+>> :dynamic_findstorage price: 3; depth: 3; importance: 0; relativePrice: 1,00; relativeDepth: 1,00; depth dependencies: :dynamic_findstorage <- :app_mobile <- :core;
+    Heavy projects: ':dynamic_findstorage' depth: 3
 ```
 
 Build graphs

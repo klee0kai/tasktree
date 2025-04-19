@@ -8,7 +8,8 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 object TaskStatHelper {
 
     fun collectAllTasksInfo(project: Project): List<TaskInfo> {
-        val tasksInfos = project.tasks.map { task ->
+        val allTasks = project.tasks.toList()
+        val tasksInfos = allTasks.map { task ->
             TaskInfo(
                 id = System.identityHashCode(task),
                 taskName = task.name,
@@ -20,7 +21,7 @@ object TaskStatHelper {
             )
         }.associateBy { task -> task.id }
 
-        project.tasks.forEach { task ->
+        allTasks.forEach { task ->
             runCatching {
                 task.taskDependencies.getDependencies(task).forEach { dependsOn ->
                     val taskStat = tasksInfos[System.identityHashCode(dependsOn)] ?: return@forEach

@@ -27,7 +27,7 @@ class ProjectInfo(
         private set
         get() {
             if (field != 0) return field
-            field = allDependedOnTasks.count()
+            field = allDependedOnProject.count()
             return field
         }
 
@@ -44,7 +44,7 @@ class ProjectInfo(
         }
     }
 
-    val allDependedOnTasks = sequence {
+    val allDependedOnProject = sequence {
         val sent = mutableSetOf<String>()
         val deps = LinkedList(dependedOnProjects.toMutableList())
         while (deps.isNotEmpty()) {
@@ -56,21 +56,27 @@ class ProjectInfo(
         }
     }
 
-    var depth: Int = 0
+    val depth: Int get() = depthDependencies.size
+
+    var depthDependencies: List<ProjectInfo> = emptyList()
         private set
         get() {
-            if (field != 0) return field
-            var maxDepth = 1
-            val checked = mutableSetOf<String>()
-            val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
+            if (field.isNotEmpty()) return field
+            val checked = mutableMapOf<String, List<ProjectInfo>>()
+            val deps = LinkedList(dependencies.map { listOf(this@ProjectInfo, it) }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                if (checked.contains(dep.first.path)) continue
-                if (dep.second > maxDepth) maxDepth = dep.second
-                checked.add(dep.first.path)
-                deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
+                val checkedDepthDeps = checked.getOrDefault(dep.last().path, emptyList())
+                if (checkedDepthDeps.size >= dep.size
+                    || checkedDepthDeps.isNotEmpty()
+                    && dep.take(checkedDepthDeps.size).map { it.path } == checkedDepthDeps.map { it.path } // ignore doubles
+                ) {
+                    continue
+                }
+                checked[dep.last().path] = dep
+                deps.addAll(0, dep.last().dependencies.map { dep + it })
             }
-            field = maxDepth
+            field = checked.values.maxByOrNull { it.size } ?: emptyList()
             return field
         }
 
