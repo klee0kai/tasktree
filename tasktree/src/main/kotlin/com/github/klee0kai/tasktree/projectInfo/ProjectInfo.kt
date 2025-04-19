@@ -56,33 +56,28 @@ class ProjectInfo(
         }
     }
 
-    var depth: Int = 0
+    val depth: Int get() = depthDependencies.size
+
+    var depthDependencies: List<ProjectInfo> = emptyList()
         private set
         get() {
-            if (field != 0) return field
-            val checked = mutableMapOf<String, Int>()
-            val deps = LinkedList(dependencies.map { it to 2 }.toMutableList())
-            while (deps.isNotEmpty()) {
-                val dep = deps.pollFirst()
-                if (checked.getOrDefault(dep.first.path, 0) >= dep.second) continue
-                checked[dep.first.path] = dep.second
-                deps.addAll(0, dep.first.dependencies.map { it to dep.second + 1 })
-            }
-            field = checked.values.maxOfOrNull { it } ?: 0
-            return field
-        }
-
-    val depthDependencies: List<ProjectInfo>
-        get() {
+            if (field.isNotEmpty()) return field
             val checked = mutableMapOf<String, List<ProjectInfo>>()
             val deps = LinkedList(dependencies.map { listOf(this@ProjectInfo, it) }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                if (checked.getOrDefault(dep.last().path, emptyList()).size >= dep.size) continue
+                val checkedDepthDeps = checked.getOrDefault(dep.last().path, emptyList())
+                if (checkedDepthDeps.size >= dep.size
+                    || checkedDepthDeps.isNotEmpty()
+                    && dep.take(checkedDepthDeps.size).map { it.path } == checkedDepthDeps.map { it.path } // ignore doubles
+                ) {
+                    continue
+                }
                 checked[dep.last().path] = dep
                 deps.addAll(0, dep.last().dependencies.map { dep + it })
             }
-            return checked.values.maxByOrNull { it.size } ?: emptyList()
+            field = checked.values.maxByOrNull { it.size } ?: emptyList()
+            return field
         }
 
 
