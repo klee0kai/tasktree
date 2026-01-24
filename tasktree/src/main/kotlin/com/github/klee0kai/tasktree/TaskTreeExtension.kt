@@ -1,6 +1,9 @@
 package com.github.klee0kai.tasktree
 
-open class TaskTreeExtension {
+import org.gradle.api.provider.Property
+import java.net.URL
+
+abstract class TaskTreeExtension {
 
     /**
      * Graph max depth
@@ -37,6 +40,15 @@ open class TaskTreeExtension {
      * List sorted list of most expensive tasks or projects
      */
     var printMostExpensive: Boolean = false
+
+
+    /**
+     * output url
+     * Examples :
+     *  - file:/home/user/test.txt
+     *  - http://localhost:2334/
+     */
+    abstract val output: Property<URL>
 
 }
 

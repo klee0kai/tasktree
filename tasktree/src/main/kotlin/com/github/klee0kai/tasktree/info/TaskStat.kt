@@ -1,16 +1,13 @@
 package com.github.klee0kai.tasktree.info
 
-import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 import java.util.*
 
 class TaskStat(
-    val id: Int = 0,
+    val path: String,
     val taskName: String,
     val className: Class<*>? = null,
     val simpleClassName: String? = null,
     val projectName: String? = null,
-    val projectDetails: ProjectDetails? = null,
-    val rootProjectDetails: ProjectDetails? = null,
     val dependencies: MutableSet<TaskStat> = mutableSetOf(),
     val dependedOnTasks: MutableSet<TaskStat> = mutableSetOf(),
 ) {
@@ -43,19 +40,20 @@ class TaskStat(
         private set
         get() {
             if (field.isNotEmpty()) return field
-            val checked = mutableMapOf<Int, List<TaskStat>>()
+            val checked = mutableMapOf<String, List<TaskStat>>()
             val deps = LinkedList(dependencies.map { listOf(this@TaskStat, it) }.toMutableList())
             while (deps.isNotEmpty()) {
                 val dep = deps.pollFirst()
-                val checkedDepthDeps = checked.getOrDefault(dep.last().id, emptyList())
+                val checkedDepthDeps = checked.getOrDefault(dep.last().path, emptyList())
                 if (checkedDepthDeps.size >= dep.size
                     || checkedDepthDeps.isNotEmpty()
-                    && dep.take(checkedDepthDeps.size).map { it.id } == checkedDepthDeps.map { it.id } // ignore doubles
+                    && dep.take(checkedDepthDeps.size)
+                        .map { it.path } == checkedDepthDeps.map { it.path } // ignore doubles
                 ) {
                     continue
                 }
-                checked[dep.last().id] = dep
-                deps.removeAll { task -> task.last().id in dep.last().dependencies.map { it.id } }
+                checked[dep.last().path] = dep
+                deps.removeAll { task -> task.last().path in dep.last().dependencies.map { it.path } }
                 deps.addAll(0, dep.last().dependencies.map { dep + it })
             }
             field = checked.values.maxByOrNull { it.size } ?: emptyList()
@@ -63,25 +61,25 @@ class TaskStat(
         }
 
     val allDependencies = sequence {
-        val sent = mutableSetOf<Int>()
+        val sent = mutableSetOf<String>()
         val deps = LinkedList(dependencies.toMutableList())
         while (deps.isNotEmpty()) {
             val dep = deps.pollFirst()
-            if (sent.contains(dep.id)) continue
+            if (sent.contains(dep.path)) continue
             yield(dep)
-            sent.add(dep.id)
+            sent.add(dep.path)
             deps.addAll(dep.dependencies)
         }
     }
 
     val allDependedOnTasks = sequence {
-        val sent = mutableSetOf<Int>()
+        val sent = mutableSetOf<String>()
         val deps = LinkedList(dependedOnTasks.toMutableList())
         while (deps.isNotEmpty()) {
             val dep = deps.pollFirst()
-            if (sent.contains(dep.id)) continue
+            if (sent.contains(dep.path)) continue
             yield(dep)
-            sent.add(dep.id)
+            sent.add(dep.path)
             deps.addAll(dep.dependedOnTasks)
         }
     }
@@ -99,11 +97,9 @@ class TaskStat(
 
 fun TaskInfo.toTaskStat(
 ) = TaskStat(
-    id,
-    taskName,
-    className,
-    simpleClassName,
-    projectName,
-    projectDetails,
-    rootProjectDetails,
+    path = path,
+    taskName = taskName,
+    className = className,
+    simpleClassName = simpleClassName,
+    projectName = projectName,
 )

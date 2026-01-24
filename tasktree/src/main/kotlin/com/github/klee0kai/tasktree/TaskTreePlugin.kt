@@ -27,8 +27,10 @@ open class TaskTreePlugin : Plugin<Project> {
             val flatlist = tasks.register("flatList", FlatListTask::class.java, ext)
 
             taskGraph.whenReady {
-                val isTaskTreeRequested =
-                    hasTask(taskTree.get()) || hasTask(taskDag.get()) || hasTask(flatlist.get())
+                val isTaskTreeRequested = hasTask(taskTree.get())
+                        || hasTask(taskDag.get())
+                        || hasTask(flatlist.get())
+
                 if (isTaskTreeRequested) {
                     allRequestedTasks.forEach {
                         it.enabled = false
@@ -36,6 +38,7 @@ open class TaskTreePlugin : Plugin<Project> {
                 }
             }
         }
+
     }
 
     /**
