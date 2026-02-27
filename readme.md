@@ -20,6 +20,8 @@ tasktree {
 }
 ```
 
+All params available [here](https://github.com/klee0kai/tasktree/blob/dev/tasktree/src/main/kotlin/com/github/klee0kai/tasktree/TaskTreeExtension.kt) 
+
 Project build report in the form of a build graph. [Diagon](https://github.com/ArthurSonzogni/Diagon) must be installed
 
 ```bash
