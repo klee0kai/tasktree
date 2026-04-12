@@ -1,6 +1,6 @@
 [versions]
 
-tasktree = "0.0.12"
+tasktree = "0.0.13"
 
 kotlin = "2.2.21"
 kotlin-serialization = "1.10.0"
