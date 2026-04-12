@@ -2,13 +2,34 @@
 
 tasktree = "0.0.12"
 
+kotlin = "2.2.21"
+kotlin-serialization = "1.10.0"
+ktor = "3.1.3"
+
 [libraries]
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization" }
+
+ktor-serialization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-utils = { group = "io.ktor", name = "ktor-utils", version.ref = "ktor" }
+ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor" }
+
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+ktor-client-plugins = { group = "io.ktor", name = "ktor-client-plugins", version.ref = "ktor" }
 
 [bundles]
 
+ktor-common = ["ktor-serialization-json", "ktor-utils", "ktor-io"]
+ktor-client = ["ktor-client-core", "ktor-client-okhttp", "ktor-client-content-negotiation",
+    "ktor-client-logging", "ktor-client-android"]
 
 [plugins]
 
 publish-plugin = { id = "com.gradle.plugin-publish", version = "1.1.0" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 tasktree = { id = "com.github.klee0kai.tasktree", version.ref = "tasktree" }
 

@@ -2,6 +2,7 @@ plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
     alias(libs.plugins.publish.plugin)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 group = libs.plugins.tasktree.get().pluginId
@@ -23,6 +24,9 @@ tasks.withType<Test>().configureEach {
 
 dependencies {
     implementation(gradleApi())
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.ktor.common)
+    implementation(libs.bundles.ktor.client)
 }
 
 
