@@ -3,29 +3,30 @@ package com.github.klee0kai.tasktree.info
 import com.github.klee0kai.tasktree.utils.fullName
 import com.github.klee0kai.tasktree.utils.simpleClassName
 import org.gradle.api.Project
-import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
 
 object TaskStatHelper {
 
     fun collectAllTasksInfo(project: Project): List<TaskInfo> {
         val allTasks = project.tasks.toList()
         val tasksInfos = allTasks.map { task ->
+
             TaskInfo(
-                id = System.identityHashCode(task),
+                path = task.path,
                 taskName = task.name,
+                group = task.group ?: "",
+                description = task.description ?: "",
+                termDir = task.temporaryDir.path,
                 className = task::class.java,
                 simpleClassName = task.simpleClassName,
                 projectName = project.fullName,
-                projectDetails = ProjectDetails.of(project),
-                rootProjectDetails = ProjectDetails.of(project.rootProject),
             )
-        }.associateBy { task -> task.id }
+        }.associateBy { task -> task.path }
 
         allTasks.forEach { task ->
             runCatching {
                 task.taskDependencies.getDependencies(task).forEach { dependsOn ->
-                    val taskStat = tasksInfos[System.identityHashCode(dependsOn)] ?: return@forEach
-                    tasksInfos[System.identityHashCode(task)]?.dependencies?.add(taskStat)
+                    val taskStat = tasksInfos[dependsOn.path] ?: return@forEach
+                    tasksInfos[dependsOn.path]?.dependencies?.add(taskStat)
                 }
             }
         }
@@ -34,7 +35,7 @@ object TaskStatHelper {
 
     fun calcToTaskStats(taskInfos: List<TaskInfo>): List<TaskStat> {
         val taskStats = taskInfos.map { taskInfo -> taskInfo.toTaskStat() }
-            .associateBy { task -> task.id }
+            .associateBy { task -> task.path }
 
         taskStats.values.forEach { task ->
             task.allTasksCount = taskInfos.size
@@ -43,7 +44,7 @@ object TaskStatHelper {
 
         taskInfos.forEach { taskInfo ->
             taskInfo.dependencies.forEach { dependsOn ->
-                taskStats[taskInfo.id]?.dependencies?.add(taskStats[dependsOn.id] ?: return@forEach)
+                taskStats[taskInfo.path]?.dependencies?.add(taskStats[dependsOn.path] ?: return@forEach)
             }
         }
 
@@ -65,11 +66,11 @@ object TaskStatHelper {
 
     fun filterByRequestedTasks(
         tasksStats: List<TaskStat>,
-        allRequestedTasksIds: Set<Int>,
+        allRequestedTasksIds: Set<String>,
     ): List<TaskStat> {
         if (allRequestedTasksIds.isEmpty()) return tasksStats
         return tasksStats.filter {
-            it.id in allRequestedTasksIds
+            it.path in allRequestedTasksIds
         }
     }
 

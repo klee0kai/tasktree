@@ -3,7 +3,11 @@ package com.github.klee0kai.tasktree.tasks
 import com.github.klee0kai.tasktree.TaskTreeExtension
 import com.github.klee0kai.tasktree.info.TaskStat
 import com.github.klee0kai.tasktree.info.TaskStatHelper
+import com.github.klee0kai.tasktree.output.TaskTreeResult
+import com.github.klee0kai.tasktree.output.toTaskNode
 import com.github.klee0kai.tasktree.utils.formatString
+import com.github.klee0kai.tasktree.utils.sendToUrl
+import kotlinx.coroutines.runBlocking
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
@@ -35,31 +39,48 @@ open class TaskTreeTask @Inject constructor(
     @set:Option(option = "verifyPrice", description = "Verify tasks price")
     protected var verifyPrice: String? = null
 
+
+    /**
+     * output url
+     * Examples :
+     *  - file://home/user/test.txt
+     *  - http://localhost:2334/
+     */
+    @Input
+    @Optional
+    @set:Option(option = "outputJson", description = "Write results to output JSON")
+    protected var outputJson: String? = null
+
     @TaskAction
-    fun generate() {
+    fun generate() = runBlocking {
         tasksStats = TaskStatHelper.calcToTaskStats(tasksInfos.get())
             .let { TaskStatHelper.filterByRequestedTasks(it, allRequestedTasksIds.get()) }
 
-        renderedTasks.clear()
-        reportGenerator().generateReport(
-            listOf(projectDetails.get()),
-            { it }
-        ) { projectTasks ->
-            val graphRenderer = GraphRenderer(renderer.textOutput)
-            val topTasks = tasksStats
-                .filter { task ->
-                    if (allRequestedTasksIds.get().isNotEmpty()) {
-                        task.dependedOnTasks.none { allRequestedTasksIds.get().contains(it.id) }
-                    } else {
-                        task.allDependedOnCount <= 0L
+        if (outputJson != null) {
+            printResultToUrl(outputJson!!)
+        } else {
+            renderedTasks.clear()
+            reportGenerator().generateReport(
+                listOf(projectDetails.get()),
+                { it }
+            ) { projectTasks ->
+                val graphRenderer = GraphRenderer(renderer.textOutput)
+                val topTasks = tasksStats
+                    .filter { task ->
+                        if (allRequestedTasksIds.get().isNotEmpty()) {
+                            task.dependedOnTasks.none { allRequestedTasksIds.get().contains(it.path) }
+                        } else {
+                            task.allDependedOnCount <= 0L
+                        }
                     }
-                }
-                .sortedByDescending { it.depth }
-            topTasks.forEach { graphRenderer.render(it) }
+                    .sortedByDescending { it.depth }
+                topTasks.forEach { graphRenderer.render(it) }
 
-            renderer.printMostExpensiveTasksIfNeed()
-            verifyIfNeed()
+                renderer.printMostExpensiveTasksIfNeed()
+            }
         }
+
+        verifyIfNeed()
     }
 
     private fun GraphRenderer.render(
@@ -68,7 +89,6 @@ open class TaskTreeTask @Inject constructor(
         depth: Int = 0,
     ) {
         visit({
-
             printTaskShort(taskStat)
 
             if (ext.printDetails) {
@@ -119,7 +139,6 @@ open class TaskTreeTask @Inject constructor(
         }
     }
 
-
     private fun StyledTextOutput.printTaskShort(
         taskStat: TaskStat,
         printDepthLine: Boolean = false,
@@ -152,7 +171,6 @@ open class TaskTreeTask @Inject constructor(
         }
     }
 
-
     private fun verifyIfNeed() {
         val verifyDepth = verifyDepth?.toInt() ?: return
         var heavyTasks = tasksStats.filter { it.depth > verifyDepth }
@@ -167,6 +185,18 @@ open class TaskTreeTask @Inject constructor(
         }
     }
 
+    private suspend fun printResultToUrl(outputJson: String) {
+        val topTasks = tasksInfos
+            .get()
+            .sortedByDescending { it.path }
+            .map { it.toTaskNode() }
+
+        val result = TaskTreeResult(
+            projects = emptyList(),
+            tasks = topTasks,
+        )
+        sendToUrl(outputJson, result)
+    }
 
 }
 

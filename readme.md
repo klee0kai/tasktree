@@ -11,7 +11,7 @@ Apply plugin in your module's `build.gradle`:
 
 ```kotlin
 plugins {
-    id("com.github.klee0kai.tasktree") version "0.0.12"
+    id("com.github.klee0kai.tasktree") version "0.0.13"
 }
 
 tasktree {
@@ -19,6 +19,8 @@ tasktree {
     maxDepth = 1
 }
 ```
+
+All params available [here](https://github.com/klee0kai/tasktree/blob/dev/tasktree/src/main/kotlin/com/github/klee0kai/tasktree/TaskTreeExtension.kt) 
 
 Project build report in the form of a build graph. [Diagon](https://github.com/ArthurSonzogni/Diagon) must be installed
 
@@ -66,7 +68,7 @@ initscript {
         maven(url = "https://jitpack.io")
     }
     dependencies {
-        classpath("com.github.klee0kai:tasktree:0.0.12")
+        classpath("com.github.klee0kai:tasktree:0.0.13")
     }
 }
 
