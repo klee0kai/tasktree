@@ -15,7 +15,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
-open class ProjectsGraphTask @Inject constructor(
+abstract class ProjectsGraphTask @Inject constructor(
     @Input
     val objectFactory: ObjectFactory,
     @Input

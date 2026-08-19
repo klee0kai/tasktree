@@ -12,7 +12,7 @@ import org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier
 import org.gradle.internal.serialization.Cached
 import javax.inject.Inject
 
-open class FlatListTask @Inject constructor(
+abstract class FlatListTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 

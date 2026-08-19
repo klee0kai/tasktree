@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.inject.Inject
 
-open class TaskGraphTask @Inject constructor(
+abstract class TaskGraphTask @Inject constructor(
     @Input
     val objectFactory: ObjectFactory,
     @Input

@@ -25,7 +25,6 @@ object ProjectStatHelper {
                 ?.filterIsInstance<ProjectDependency>()
                 ?.forEach { dep ->
                     val depProjectInfo = runCatching { projectInfos[dep.path] }.getOrNull()
-                        ?: runCatching { projectInfos[dep.dependencyProject.path] }.getOrNull()
                         ?: return@forEach
                     projectInfo.dependencies.add(depProjectInfo)
                 }

@@ -19,7 +19,7 @@ import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import org.gradle.internal.serialization.Cached
 import javax.inject.Inject
 
-open class TaskTreeTask @Inject constructor(
+abstract class TaskTreeTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
@@ -126,16 +126,16 @@ open class TaskTreeTask @Inject constructor(
                 .filter { it.depth > 0 }
                 .sortedByDescending { it.depth }
             textOutput
-                .println()
-                .withStyle(Header)
-                .println("Most expensive tasks:")
+                ?.println()
+                ?.withStyle(Header)
+                ?.println("Most expensive tasks:")
 
             allStat.forEach {
                 renderer.textOutput
-                    .printTaskShort(taskStat = it, printDepthLine = true)
-                    .println()
+                    ?.printTaskShort(taskStat = it, printDepthLine = true)
+                    ?.println()
             }
-            textOutput.println()
+            textOutput?.println()
         }
     }
 

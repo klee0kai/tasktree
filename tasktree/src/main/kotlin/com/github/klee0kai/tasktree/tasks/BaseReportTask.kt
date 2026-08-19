@@ -1,7 +1,6 @@
 package com.github.klee0kai.tasktree.tasks
 
 import com.github.klee0kai.tasktree.utils.allRequestedTasks
-import com.github.klee0kai.tasktree.utils.fullName
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.diagnostics.ConventionReportTask
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails
@@ -28,7 +27,6 @@ abstract class BaseReportTask : ConventionReportTask() {
     protected open fun reportGenerator(): ReportGenerator {
         return ReportGenerator(
             getRenderer(),
-            clientMetaData,
             outputFile,
             textOutputFactory
         )

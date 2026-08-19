@@ -15,7 +15,7 @@ import org.gradle.internal.logging.text.StyledTextOutput.Style.*
 import org.gradle.internal.serialization.Cached
 import javax.inject.Inject
 
-open class ProjectTreeTask @Inject constructor(
+abstract class ProjectTreeTask @Inject constructor(
     private val ext: TaskTreeExtension,
 ) : BaseReportTask() {
 
@@ -113,16 +113,16 @@ open class ProjectTreeTask @Inject constructor(
                 .filter { it.depth > 0 }
                 .sortedByDescending { it.depth }
             textOutput
-                .println()
-                .withStyle(Header)
-                .println("Most expensive modules:")
+                ?.println()
+                ?.withStyle(Header)
+                ?.println("Most expensive modules:")
 
             allStat.forEach {
                 renderer.textOutput
-                    .printProjectShort(projectInfo = it, printDepthLine = true)
-                    .println()
+                    ?.printProjectShort(projectInfo = it, printDepthLine = true)
+                    ?.println()
             }
-            textOutput.println()
+            textOutput?.println()
         }
     }
 
